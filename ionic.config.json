@@ -1,0 +1,7 @@
+{
+  "name": "AlertMe",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "react-vite"
+}
