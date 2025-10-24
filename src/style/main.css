@@ -27,7 +27,7 @@
     .Toastify__toast-container {
         z-index: 999999 !important;
     }
-    
+
     /* ====== Toast Box ====== */
     .Toastify__toast {
         width: 80% !important;
@@ -72,11 +72,8 @@
 
 @theme {
     --color-light-background: ;
-    /* --color-mainRed: #FF4040;
-    --color-mainRedRGB: rgba(255, 64, 64, 0.2);
-    --color-mainLightBlue: #35A8F6;
-    --color-mainLightBlueRGB: rgba(53, 168, 246, 0.2);
-    --color-mainDarkBlue: #0B5394; */
+    --color-mainRed: #f25255;
+    --color-mainRedRGB: rgba(242, 82, 85, 0.2);
     --color-mainDark: #3e3f46;
     --color-lime: #00FF00;
     --color-gray: #808080;

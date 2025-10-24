@@ -25,16 +25,25 @@ import "./style/main.css"
 
 setupIonicReact();
 
+// Config
+import { routeConfig } from './config/routeConfig';
+
+// Page
+import IntroductionPage from './ui/pages/Introduction';
+import LoginPage from './ui/pages/Login';
+import RegisterPage from './ui/pages/Register';
+
+// Component
+import { ScreenSizeWarningPopup } from './hooks/DeviceCheck';
+
 const App: React.FC = () => (
   <IonApp>
+    <ScreenSizeWarningPopup />
     <IonReactRouter>
-      <IonRouterOutlet>
-        {/* <Route exact path="/home">
-          <Home />
-        </Route>
-        <Route exact path="/">
-          <Redirect to="/home" />
-        </Route> */}
+      <IonRouterOutlet animated={false}>
+        <Route exact path="/" children={<IntroductionPage />}></Route>
+        <Route exact path={routeConfig.login.root} children={<LoginPage />}></Route>
+        <Route exact path={routeConfig.register.root} children={<RegisterPage />}></Route>
       </IonRouterOutlet>
     </IonReactRouter>
   </IonApp>

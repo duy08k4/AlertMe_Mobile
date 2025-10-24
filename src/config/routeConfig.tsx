@@ -1,7 +1,4 @@
 export const routeConfig = {
-    intro: {
-        root: "/"
-    },
     main: {
         root: "/main",
         map: "/main/map",

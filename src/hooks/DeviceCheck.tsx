@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const DESKTOP_BREAKPOINT = 640;
+const MOBILE_BREAKPOINT = 640;
 
 export const useScreenSizeCheck = (): boolean => {
     const [width, setWidth] = useState(window.innerWidth);
@@ -20,7 +20,7 @@ export const useScreenSizeCheck = (): boolean => {
         };
     }, []);
 
-    return width > DESKTOP_BREAKPOINT;
+    return width > MOBILE_BREAKPOINT;
 };
 
 
@@ -34,7 +34,7 @@ export const ScreenSizeWarningPopup: React.FC = () => {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[999] bg-black bg-opacity-60 flex items-center justify-center p-4 backdrop-blur-sm"
+                    className="fixed inset-0 z-999 bg-black bg-opacity-60 flex items-center justify-center p-4 backdrop-blur-sm"
                 >
                     <motion.div
                         initial={{ scale: 0.9, opacity: 0 }}
