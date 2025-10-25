@@ -55,7 +55,7 @@ const ChooseRole: React.FC<ChooseRole_interface> = ({ chooseRole }) => {
                     <p className="text-gray text-csMedium">Hãy chọn vai trò của bạn</p>
                 </span>
 
-                <span className="flex gap-2.5">
+                <span className="h-fit flex gap-2.5">
                     <span
                         onClick={() => { setSelectedRole("citizen") }}
                         className="h-fit mainShadow flex flex-col items-center-safe gap-2.5 px-2.5 py-2.5 rounded-main"
