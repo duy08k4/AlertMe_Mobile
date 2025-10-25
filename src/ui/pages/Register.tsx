@@ -10,6 +10,7 @@ import { motion } from "framer-motion"
 
 // Component
 import CitizenRegisterForm from "../components/Citizen/CitizenRegisterForm"
+import StaffRegisterForm from "../components/Staff/StaffRegisterForm"
 
 type role = "citizen" | "staff"
 
@@ -106,6 +107,7 @@ const RegisterPage: React.FC = () => {
             <div className="relative h-full w-full bg-white">
                 {isCitizen === undefined && (<ChooseRole chooseRole={chooseRole} />)}
                 {isCitizen && (<CitizenRegisterForm toggleRole={toggleRole} />)}
+                {!isCitizen && isCitizen != undefined && (<StaffRegisterForm toggleRole={toggleRole} />)}
             </div>
         </IonPage>
     )
