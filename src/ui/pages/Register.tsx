@@ -58,17 +58,17 @@ const ChooseRole: React.FC<ChooseRole_interface> = ({ chooseRole }) => {
                 <span className="h-fit flex gap-2.5">
                     <span
                         onClick={() => { setSelectedRole("citizen") }}
-                        className="h-fit flex-1 mainShadow flex flex-col items-center-safe gap-2.5 px-2.5 py-2.5 rounded-main"
+                        className="flex-1 mainShadow flex flex-col justify-end-safe items-center-safe gap-2.5 px-2.5 py-3.5 rounded-main"
                     >
-                        <img className="h-full" src={Citizen_img} />
+                        <img className="w-[80%]" src={Citizen_img} />
                         <p className="text-csMedium">Người dân</p>
                     </span>
 
                     <span
                         onClick={() => { setSelectedRole("staff") }}
-                        className="h-fit flex-1 mainShadow flex flex-col items-center-safe gap-2.5 px-2.5 py-2.5 rounded-main"
+                        className="flex-1 mainShadow flex flex-col justify-end-safe items-center-safe gap-2.5 px-2.5 py-3.5 rounded-main"
                     >
-                        <img className="h-full" src={Staff_img} />
+                        <img className="w-[80%]" src={Staff_img} />
                         <p className="text-csMedium">Nhân viên</p>
                     </span>
                 </span>
