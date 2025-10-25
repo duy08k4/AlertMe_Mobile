@@ -8,6 +8,9 @@ import Staff_img from "../../assets/Pattern/Towing.svg"
 // Motion
 import { motion } from "framer-motion"
 
+// Component
+import CitizenRegisterForm from "../components/Citizen/CitizenRegisterForm"
+
 type role = "citizen" | "staff"
 
 interface ChooseRole_interface {
@@ -15,14 +18,16 @@ interface ChooseRole_interface {
 }
 
 const ChooseRole: React.FC<ChooseRole_interface> = ({ chooseRole }) => {
+    const [selectedRole, setSelectedRole] = useState<role | undefined>()
     const router = useIonRouter()
 
     // Animation
-    const [selectedRole, setSelectedRole] = useState<role | undefined>()
 
     useEffect(() => {
         if (selectedRole) {
-            chooseRole(selectedRole)
+            setTimeout(() => {
+                chooseRole(selectedRole)
+            }, 100)
         }
     }, [selectedRole])
 
@@ -92,12 +97,15 @@ const RegisterPage: React.FC = () => {
         }
     }
 
+    const toggleRole = () => {
+        setIsCitizen(undefined)
+    }
+
     return (
         <IonPage>
             <div className="relative h-full w-full bg-white">
-                {!isCitizen && (<ChooseRole chooseRole={chooseRole} />)}
-                Chưa có cái gì hết. Hẹ hẹ :)))
-                <p>You mới chọn {isCitizen ? "Người dân" : "Bán mình cho tư bản"}</p>
+                {isCitizen === undefined && (<ChooseRole chooseRole={chooseRole} />)}
+                {isCitizen && (<CitizenRegisterForm toggleRole={toggleRole} />)}
             </div>
         </IonPage>
     )
