@@ -48,7 +48,7 @@ const ChooseRole: React.FC<ChooseRole_interface> = ({ chooseRole }) => {
                 animate={{ scale: !selectedRole ? 1 : 0.9, opacity: !selectedRole ? 1 : 0 }}
                 exit={{ scale: 0.9, opacity: 0 }}
                 transition={{ duration: 0.3, ease: 'easeOut' }}
-                className="bg-white w-[90%] flex flex-col gap-5 rounded-main p-5"
+                className="bg-white h-fit w-[90%] flex flex-col gap-5 rounded-main p-5"
             >
                 <span className="flex flex-col items-center-safe">
                     <h3 className="leading-none!">Vai trò</h3>
