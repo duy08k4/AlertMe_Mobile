@@ -9,7 +9,7 @@ import Staff_img from "../../assets/Pattern/Towing.svg"
 import { motion } from "framer-motion"
 
 // Component
-import CitizenRegisterForm from "../components/Citizen/CitizenRegisterForm"
+import CitizenRegisterForm from "../components/User/UserRegisterForm"
 import StaffRegisterForm from "../components/Staff/StaffRegisterForm"
 
 type role = "citizen" | "staff"
