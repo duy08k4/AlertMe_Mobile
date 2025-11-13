@@ -1,12 +1,16 @@
 export const routeConfig = {
-    intro: {
-        root: "/"
-    },
     main: {
         root: "/main",
         map: "/main/map",
-        report: "/main/discover",
+        news: "/main/news",
         moreInfo: "/main/more-info",
+        user: {
+            myReport: "/main/my-report",
+        },
+        
+        staff: {
+            myTask: "/main/my-task",
+        },
     },
     mainSlug: {
         map: {
@@ -21,5 +25,8 @@ export const routeConfig = {
     },
     register: {
         root: "/register"
+    },
+    unAuth: {
+        root: "/un-auth"
     }
 }
