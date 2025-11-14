@@ -26,11 +26,9 @@ const NewsCard: React.FC<{ onCardClick: (id: number) => void; id: number }> = ({
 
 const NewsPage: React.FC = () => {
     const [showNewsDetail, setShowNewsDetail] = useState(false);
-    const [selectedReportId, setSelectedReportId] = useState<number | null>(null);
     const [showFilterOptions, setShowFilterOptions] = useState(false);
 
     const handleCardClick = (id: number) => {
-        setSelectedReportId(id);
         setShowNewsDetail(true);
 
         console.log("Selected Report ID:", id);
@@ -38,7 +36,6 @@ const NewsPage: React.FC = () => {
 
     const handleCloseDetail = () => {
         setShowNewsDetail(false);
-        setSelectedReportId(null);
     };
 
     return (
@@ -102,7 +99,7 @@ const NewsPage: React.FC = () => {
 
             {showNewsDetail && (
                 <div className="absolute inset-0 z-50 bg-white overflow-auto">
-                    <NewsDetail reportId={selectedReportId} onClose={handleCloseDetail} />
+                    <NewsDetail onClose={handleCloseDetail} />
                 </div>
             )}
         </IonPage>

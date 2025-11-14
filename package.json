@@ -13,10 +13,12 @@
   },
   "dependencies": {
     "@capacitor/app": "7.1.0",
-    "@capacitor/core": "7.4.4",
+    "@capacitor/camera": "^7.0.2",
+    "@capacitor/core": "^7.4.4",
     "@capacitor/haptics": "7.0.2",
     "@capacitor/keyboard": "7.0.3",
     "@capacitor/status-bar": "7.0.3",
+    "@ionic/pwa-elements": "^3.3.0",
     "@ionic/react": "^8.5.0",
     "@ionic/react-router": "^8.5.0",
     "@reduxjs/toolkit": "^2.10.1",
@@ -32,6 +34,7 @@
     "react-router": "^5.3.4",
     "react-router-dom": "^5.3.4",
     "react-spinners": "^0.17.0",
+    "react-toastify": "^11.0.5",
     "tailwindcss": "^4.1.16"
   },
   "devDependencies": {
