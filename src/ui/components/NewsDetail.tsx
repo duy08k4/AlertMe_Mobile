@@ -1,18 +1,44 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import L from 'leaflet'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
 import Logo from "../../assets/AlertMe.png";
 
+
+interface PinMarkerProps {
+    position: [number, number];
+    color?: string;
+    size?: number;
+}
+const PinMarker: React.FC<PinMarkerProps> = ({ position, color = '#f25255', size = 32 }) => {
+    const icon = L.divIcon({
+        className: "custom-pin-marker",
+        html: `
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" width="${size}" height="${size}" stroke="black">
+        <path fill-rule="evenodd" d="m11.54 22.351.07.04.028.016a.76.76 0 0 0 .723 0l.028-.015.071-.041a16.975 16.975 0 0 0 1.144-.742 19.58 19.58 0 0 0 2.683-2.282c1.944-1.99 3.963-4.98 3.963-8.827a8.25 8.25 0 0 0-16.5 0c0 3.846 2.02 6.837 3.963 8.827a19.58 19.58 0 0 0 2.682 2.282 16.975 16.975 0 0 0 1.145.742ZM12 13.5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clip-rule="evenodd"/>
+      </svg>
+    `,
+        iconSize: [size, size],
+        iconAnchor: [size / 2, size],
+    });
+
+    return <Marker position={position} icon={icon} />;
+};
+
+
 interface NewsDetailProps {
-    reportId: number | null;
     onClose: () => void;
 }
 
-const NewsDetail: React.FC<NewsDetailProps> = ({ reportId, onClose }) => {
+const NewsDetail: React.FC<NewsDetailProps> = ({ onClose }) => {
     const images = [Logo, Logo, Logo];
 
     const position: [number, number] = [10.7769, 106.7009];
+
+    const handleViewOnMap = () => {
+        alert("Chưa có gì đâu hẹ hẹ :v")
+    }
 
     return (
         <motion.div
@@ -20,7 +46,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ reportId, onClose }) => {
             animate={{ x: 0 }}
             exit={{ x: "100%" }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className="w-full h-full bg-white flex flex-col"
+            className="fixed top-0 left-0 w-full h-full bg-white flex flex-col"
         >
             {/* Header */}
             <header className="shrink-0 flex justify-between items-center px-mainTwoSidePadding border-b border-gray-200 bg-white py-2.5">
@@ -56,7 +82,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ reportId, onClose }) => {
 
                 {/* Report Title */}
                 <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900">Tên Báo Cáo Sự Cố {reportId}</h2>
+                    <h2 className="text-2xl font-bold text-gray-900">Tên Báo Cáo Sự Cố</h2>
                     <p className="text-csNormal text-gray mt-1"><b className='text-gray'>Tạo lúc: </b>12/11/2025 10:30 AM</p>
                 </div>
 
@@ -100,8 +126,18 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ reportId, onClose }) => {
                                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                             />
-                            <Marker position={position}></Marker>
+                            <PinMarker position={position} />
                         </MapContainer>
+                    </div>
+
+                    <div className='w-full h-fit'>
+                        <button className='w-full h-fit bg-mainRed flex gap-2.5 justify-center-safe items-center-safe text-white text-csNormal py-2.5!' onClick={handleViewOnMap}>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="size-5">
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
+                            </svg>
+
+                            Xem trên B.Đồ
+                        </button>
                     </div>
                 </div>
             </div>
