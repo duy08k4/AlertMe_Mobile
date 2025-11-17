@@ -10,6 +10,7 @@ import { routeConfig } from "../../config/routeConfig"
 
 // Motion
 import { motion } from "framer-motion"
+import { Link } from "react-router-dom"
 
 const IntroductionPage: React.FC = () => {
     const router = useIonRouter()
@@ -39,7 +40,7 @@ const IntroductionPage: React.FC = () => {
                         >
                             tài khoản mới
                         </button>
-                        <p className="text-csNormal text-mainDark">Bạn đã có tài khoản? <i className="text-mainRed font-medium underline">Đăng nhập</i></p>
+                        <p className="text-csNormal text-mainDark">Bạn đã có tài khoản? <Link to={routeConfig.login.root} className="text-mainRed! font-medium! underline">Đăng nhập</Link></p>
                     </span>
                 </motion.div>
             </div>
