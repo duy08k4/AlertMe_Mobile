@@ -6,6 +6,7 @@ import { BounceLoader } from 'react-spinners'
 
 // Config
 import { routeConfig } from "../../../config/routeConfig";
+import { Link } from "react-router-dom";
 
 const processSteps = [
     {
@@ -108,7 +109,7 @@ const ProcessPopup: React.FC = () => {
 
 // Interface
 interface CitizenRegisterForm_interface {
-    toggleRole: () => void
+
 }
 
 // Type
@@ -133,15 +134,15 @@ type toastInputType = {
     }
 }
 
-const CitizenRegisterForm: React.FC<CitizenRegisterForm_interface> = ({ toggleRole }) => {
+const CitizenRegisterForm: React.FC<CitizenRegisterForm_interface> = () => {
     // State
     const [isProcess, setIsProcess] = useState<boolean>(false)
 
     // Data
-    const [username, setUserName] = useState<string>()
-    const [email, setEmail] = useState<string>()
-    const [password, setPassword] = useState<string>()
-    const [confirmPassword, setConfirmPassword] = useState<string>()
+    const [username, setUserName] = useState<string>('')
+    const [email, setEmail] = useState<string>('')
+    const [password, setPassword] = useState<string>('')
+    const [confirmPassword, setConfirmPassword] = useState<string>('')
 
     const [toastInput, setToastInput] = useState<toastInputType>({
         userName: {
@@ -288,19 +289,6 @@ const CitizenRegisterForm: React.FC<CitizenRegisterForm_interface> = ({ toggleRo
     return (
         <div className="relative h-full w-full">
             <div className="relative h-full w-full bg-white flex flex-col gap-5 px-mainTwoSidePadding pt-2.5">
-                <span className="absolute top-2.5 right-2.5">
-                    <button
-                        onClick={toggleRole}
-                        className="mainShadow text-csNormal flex items-center-safe gap-1.5 px-2.5! py-2.5! rounded-main!"
-                    >
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
-                        </svg>
-
-                        Đổi vai trò
-                    </button>
-                </span>
-
                 <span className="w-full">
                     <h1 className="leading-none! text-4xl! text-mainDark">Xin chào</h1>
                     <p className="text-csMedium text-gray">Vui lòng điền đầy đủ thông tin bên dưới</p>
@@ -375,7 +363,12 @@ const CitizenRegisterForm: React.FC<CitizenRegisterForm_interface> = ({ toggleRo
                 </span>
 
                 <span className="flex items-center-safe justify-center-safe">
-                    <p className="text-csNormal">Đã có tài khoản? <i className="text-mainRed font-medium underline">Đăng nhập</i></p>
+                    <p className="text-csNormal">
+                        Đã có tài khoản?
+                        <Link to={routeConfig.login.root} className="text-mainRed! font-medium underline italic">
+                            Đăng nhập
+                        </Link>
+                    </p>
                 </span>
             </div>
 
