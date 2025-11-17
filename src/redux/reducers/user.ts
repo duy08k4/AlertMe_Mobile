@@ -12,7 +12,7 @@ type userType = {
 
 const initialState: UserState = {
     user: {},
-    isAuth: false
+    isAuth: true
 }
 
 export const userSlice = createSlice({

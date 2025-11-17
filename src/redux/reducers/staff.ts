@@ -12,7 +12,7 @@ type staffType = {
 
 const initialState: StaffState = {
     staff: {},
-    isAuth: true
+    isAuth: false
 }
 
 export const staffSlice = createSlice({
