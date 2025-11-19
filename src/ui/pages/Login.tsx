@@ -1,4 +1,4 @@
-import { IonPage } from "@ionic/react";
+import { IonPage, useIonRouter } from "@ionic/react";
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 
@@ -6,32 +6,66 @@ import { Link } from "react-router-dom";
 import Logo from "../../assets/AlertMe.png";
 import Pattern from "../../assets/Pattern/Citizen.svg";
 import { routeConfig } from "../../config/routeConfig";
+import { toastConfig } from "../../config/toastConfig";
+import { authUser } from "../../services/authUser";
+import { setUserAuth, setUser, userData } from "../../redux/reducers/user";
+import { useDispatch } from "react-redux";
+import { setStaffAuth } from "../../redux/reducers/staff";
 
 const LoginPage: React.FC = () => {
+    const dispatch = useDispatch()
+    const router = useIonRouter()
     // State for form inputs
     const [email, setEmail] = useState<string>("");
     const [password, setPassword] = useState<string>("");
 
     // Handle login button click
-    const handleLogin = () => {
-        console.log("Login attempt with:");
-        console.log("Email:", email);
-        console.log("Password:", password);
-        // Next steps would be to dispatch an action or call an API
+    const handleLogin = async () => {
+        const regex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
+        if (!email || !regex.test(email)) {
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Email không hợp lệ'
+            })
+            return
+        }
+
+        if (!password || password.trim().length === 0) {
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Vui lòng nhâp mật khẩu'
+            })
+            return
+        }
+
+        const loginResponse: undefined | boolean | userData = await authUser.signin(email, password)
+        if (loginResponse) {
+            dispatch(setUser(loginResponse.user))
+
+            if (loginResponse.user.role.name === 'user') {
+                dispatch(setUserAuth(true))
+                dispatch(setStaffAuth(false))
+            } else {
+                dispatch(setUserAuth(false))
+                dispatch(setStaffAuth(true))
+            }
+            router.push(routeConfig.main.root)
+        }
     };
 
     return (
         <IonPage>
             <div className="relative h-full w-full bg-white overflow-hidden">
                 {/* Background Patterns */}
-                <img 
-                    src={Pattern} 
-                    alt="pattern" 
+                <img
+                    src={Pattern}
+                    alt="pattern"
                     className="absolute -top-16 -left-16 w-64 h-64 opacity-20 transform rotate-45"
                 />
-                <img 
-                    src={Pattern} 
-                    alt="pattern" 
+                <img
+                    src={Pattern}
+                    alt="pattern"
                     className="absolute -bottom-16 -right-16 w-64 h-64 opacity-20 transform rotate-12"
                 />
 
@@ -48,9 +82,9 @@ const LoginPage: React.FC = () => {
                         <span className="w-full flex flex-col gap-4">
                             <span className="w-full">
                                 <p className="text-base font-medium text-gray-700">Email <b className="text-red-600">*</b></p>
-                                <input 
-                                    type="email" 
-                                    className="outline-none w-full text-base border border-gray-300 px-3 py-2.5 rounded-md mt-1 focus:border-red-500" 
+                                <input
+                                    type="email"
+                                    className="outline-none w-full text-base border border-gray-300 px-3 py-2.5 rounded-md mt-1 focus:border-red-500"
                                     placeholder="nguyenvana@gmail.com"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
@@ -59,9 +93,9 @@ const LoginPage: React.FC = () => {
 
                             <span className="w-full">
                                 <p className="text-base font-medium text-gray-700">Mật khẩu <b className="text-red-600">*</b></p>
-                                <input 
-                                    type="password" 
-                                    className="outline-none w-full text-base border border-gray-300 px-3 py-2.5 rounded-md mt-1 focus:border-red-500" 
+                                <input
+                                    type="password"
+                                    className="outline-none w-full text-base border border-gray-300 px-3 py-2.5 rounded-md mt-1 focus:border-red-500"
                                     placeholder="Nhập mật khẩu"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
@@ -71,7 +105,7 @@ const LoginPage: React.FC = () => {
 
                         {/* Actions */}
                         <span className="w-full mt-2">
-                            <button 
+                            <button
                                 className="w-full h-fit bg-mainRed text-white text-csMedium py-3! rounded-main! font-medium transition-colors"
                                 onClick={handleLogin}
                             >

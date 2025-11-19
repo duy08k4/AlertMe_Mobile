@@ -1,5 +1,6 @@
 import api from "../config/gateway";
 import { toastConfig } from "../config/toastConfig";
+import { userData } from "../redux/reducers/user";
 
 
 export class authUser {
@@ -10,6 +11,7 @@ export class authUser {
         })
     }
 
+    // Only user(citizen)
     public static async signup(email: string, password: string, username: string) {
         if (!email || !password || !username) {
             toastConfig({
@@ -108,5 +110,52 @@ export class authUser {
         }
     }
 
+    public static async signin(email: string, password: string) {
+        try {
+            if (!email || !password) {
+                toastConfig({
+                    toastType: 'error',
+                    toastMessage: 'Đăng nhập thất bại'
+                })
+                console.error(`Invalid data`)
+                return false
+            }
 
+            const { data, status } = await api.post("/auth/signin", {
+                email,
+                password
+            })
+
+            if (status === 200) {
+                toastConfig({
+                    toastType: 'success',
+                    toastMessage: 'Đăng nhập thành công'
+                })
+
+                localStorage.setItem("accessToken", data.access_token)
+                localStorage.setItem("refreshToken", data.refresh_token)
+                return data as userData
+            }
+
+            if (status === 401) {
+                toastConfig({
+                    toastType: 'error',
+                    toastMessage: 'Đăng nhập thất bại'
+                })
+                return false
+            }
+
+        } catch (error) {
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Đăng nhập thất bại'
+            })
+            console.error(error)
+            return false
+        }
+    }
+
+    public static storageToken(accessToken: string, refreshToken: string) {
+        // Do something
+    }
 }
