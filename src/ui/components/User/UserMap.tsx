@@ -63,7 +63,7 @@ const UserMap: React.FC<UserMap_interface> = ({ changeLayer }) => {
         if (Capacitor.getPlatform() === "web" && isFirstTimeRef.current) {
             toastConfig({
                 toastMessage:
-                    "Lưu ý: Độ chính xác vị trí của bạn trên web có thể bị ảnh hưởng. Toạ độ các loài không thay đổi.",
+                    "Lưu ý: Độ chính xác vị trí của bạn trên web có thể bị ảnh hưởng. Toạ độ các sự cố không thay đổi.",
                 toastType: "info",
             });
             isFirstTimeRef.current = false;

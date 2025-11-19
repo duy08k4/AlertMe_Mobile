@@ -55,6 +55,7 @@ export class authUser {
                 return false
             }
 
+            return false
         }
         catch (error) {
             console.error(error)
@@ -145,6 +146,8 @@ export class authUser {
                 return false
             }
 
+            return false
+
         } catch (error) {
             toastConfig({
                 toastType: 'error',
@@ -155,7 +158,50 @@ export class authUser {
         }
     }
 
-    public static storageToken(accessToken: string, refreshToken: string) {
-        // Do something
+    public static async autosigin() {
+        const accessToken = localStorage.getItem("accessToken")
+        const refreshToken = localStorage.getItem("refreshToken")
+
+        if (!accessToken || !refreshToken) {
+            return false
+        }
+
+        try {
+            const { data, status } = await api.post("/auth/refresh", {
+                refresh_token: refreshToken
+            })
+
+            if (status === 200) {
+                localStorage.setItem("accessToken", data.access_token)
+                localStorage.setItem("refreshToken", data.refresh_token)
+                
+                const response = await api.get("/auth/me", {
+                    headers: {
+                        Authorization: `Bearer ${data.access_token}`
+                    }
+                })
+
+                return response.data as userData['user']
+            }
+
+            if (status === 401 && accessToken && refreshToken) {
+                toastConfig({
+                    toastType: 'error',
+                    toastMessage: 'Phiên đăng nhập hết hạn'
+                })
+                return false
+            }
+
+            return false
+        } catch (error) {
+            if (accessToken && refreshToken) {
+                toastConfig({
+                    toastType: 'error',
+                    toastMessage: 'Phiên đăng nhập hết hạn'
+                })
+            }
+            console.log(error)
+            return false
+        }
     }
 }
