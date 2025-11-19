@@ -32,7 +32,8 @@
   /* ====== Toast Box ====== */
   .Toastify__toast {
     width: 80% !important;
-    font-size: 15px !important;
+    font-size: 14px !important;
+    color: #3e3f46;
   }
 
   /* -------- */

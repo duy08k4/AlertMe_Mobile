@@ -3,6 +3,7 @@ import { createRoot } from 'react-dom/client';
 import App from './App';
 import { store } from './redux/store';
 import { Provider } from 'react-redux'
+import { ToastContainer } from 'react-toastify';
 
 import { defineCustomElements } from '@ionic/pwa-elements/loader';
 
@@ -12,9 +13,10 @@ defineCustomElements(window);
 const container = document.getElementById('root');
 const root = createRoot(container!);
 root.render(
-  <React.StrictMode>
+  // <React.StrictMode>
     <Provider store={store}>
       <App />
+      <ToastContainer />
     </Provider>
-  </React.StrictMode>
+  // </React.StrictMode>
 );
