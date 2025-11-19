@@ -1,6 +1,8 @@
 import { useMapEvent } from "react-leaflet"
 import { ZoomButton } from "../../pages/Map"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
+import { toastConfig } from "../../../config/toastConfig"
+import { Capacitor } from "@capacitor/core"
 
 interface StaffMap_interface {
     changeLayer: () => void
@@ -8,6 +10,7 @@ interface StaffMap_interface {
 
 const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer }) => {
     // Map event
+    const mapRef = useRef<L.Map>(null);
     const map = useMapEvent("movestart", () => {
         if (isNote) setIsNote(false)
     })
@@ -33,9 +36,75 @@ const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer }) => {
         setIsNote(!isNote)
     }
 
+    const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
+    const [isTracking, setIsTracking] = useState<boolean>(false);
+    const isFirstTimeRef = useRef<boolean>(true);
+    const watchIdRef = useRef<number | null>(null);
+    const trackingRef = useRef(isTracking);
+
+    const startTracking = () => {
+        if (Capacitor.getPlatform() === "web" && isFirstTimeRef.current) {
+            toastConfig({
+                toastMessage:
+                    "Lưu ý: Độ chính xác vị trí của bạn trên web có thể bị ảnh hưởng. Toạ độ các loài không thay đổi.",
+                toastType: "info",
+            });
+            isFirstTimeRef.current = false;
+        }
+
+        if (navigator.geolocation) {
+            setIsTracking(true);
+            watchIdRef.current = navigator.geolocation.watchPosition(
+                (position) => {
+                    const { latitude, longitude } = position.coords;
+                    const newPosition: [number, number] = [latitude, longitude];
+                    setUserPosition(newPosition);
+                    if (trackingRef.current) {
+                        mapRef.current?.flyTo(newPosition, 15);
+                    }
+                },
+                () => {
+                    toastConfig({
+                        toastMessage: "Không thể lấy vị trí của bạn",
+                        toastType: "error",
+                    });
+                    stopTracking();
+                }
+            );
+        } else {
+            toastConfig({
+                toastMessage: "Trình duyệt không hỗ trợ định vị",
+                toastType: "error",
+            });
+        }
+    };
+
+    const toggleTracking = () => {
+        if (isTracking) {
+            stopTracking();
+        } else {
+            startTracking();
+        }
+    };
+
+    const stopTracking = () => {
+        if (watchIdRef.current !== null) {
+            navigator.geolocation.clearWatch(watchIdRef.current);
+            watchIdRef.current = null;
+        }
+        setIsTracking(false);
+    };
+
+    // Cleanup on unmount
+    useEffect(() => {
+        return () => {
+            stopTracking();
+        };
+    }, []);
+
     return (
         <>
-            <span className="absolute z-1000 bottom-10 right-2.5 flex flex-col gap-7.5">
+            <span className="absolute z-2000 bottom-10 right-2.5 flex flex-col gap-7.5">
                 <span className="flex flex-col gap-2.5">
                     <button className="mainShadow h-fit aspect-square bg-mainDark rounded-full! p-3!" onClick={toggleNote}>
                         <i className="fas fa-question text-white"></i>
@@ -99,7 +168,7 @@ const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer }) => {
                         <i className="fas fa-layer-group"></i>
                     </button>
 
-                    <button className="relative mainShadow h-fit aspect-square bg-white rounded-full! p-3!">
+                    <button className="relative mainShadow h-fit aspect-square bg-white rounded-full! p-3!" onClick={toggleTracking}>
                         {isNote && (
                             <p
                                 className="mainShadow text-nowrap absolute top-1/2 translate-y-[-50%] right-[calc(100%+10px)] bg-mainDark text-white px-2.5 py-1.5 before:content-[''] before:absolute before:top-1/2 before:-right-2 before:-translate-y-1/2 before:border-y-6 before:border-y-transparent before:border-l-8 before:border-l-mainDark rounded-small"

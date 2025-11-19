@@ -5,6 +5,8 @@ import { useMap, MapContainer, TileLayer } from 'react-leaflet'
 // Component
 import UserMap from "../components/User/UserMap";
 import StaffMap from "../components/Staff/StaffMap";
+import { Capacitor } from "@capacitor/core";
+import { toastConfig } from "../../config/toastConfig";
 
 // Map resize
 export const MapResizeHandler: React.FC = () => {
@@ -69,6 +71,10 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
             setLayer(layer + 1)
         }
     }
+
+    const mapRef = useRef<L.Map>(null);
+    
+
     return (
         <IonPage>
             <div className="relative h-full w-full">
@@ -85,7 +91,7 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
                         url={mapLayers.current[layer].layer}
                         attribution={mapLayers.current[layer].attribution}
                     />
-            
+
                     {isUser ? (
                         <UserMap changeLayer={changeLayer} />
                     ) : (
