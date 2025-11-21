@@ -2,16 +2,19 @@ import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
 
 export interface ReportState {
-    report: reportType | {},
+    reports: reportType[],
     isAuth: boolean,
 }
 
-type reportType = {
-
+export type reportType = {
+    id: string,
+    name: string,
+    lat: number,
+    lng: number
 }
 
 const initialState: ReportState = {
-    report: {},
+    reports: [],
     isAuth: false
 }
 
@@ -19,8 +22,8 @@ export const reportSlice = createSlice({
     name: 'report',
     initialState,
     reducers: {
-        setReport: (state, action: PayloadAction<reportType>) => {
-            state.report = action.payload
+        setReport: (state, action: PayloadAction<reportType[]>) => {
+            state.reports = action.payload
         }
     },
 })

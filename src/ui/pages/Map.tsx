@@ -5,6 +5,7 @@ import { useMap, MapContainer, TileLayer } from 'react-leaflet'
 // Component
 import UserMap from "../components/User/UserMap";
 import StaffMap from "../components/Staff/StaffMap";
+import RenderReport from "../components/RenderReport";
 import { Capacitor } from "@capacitor/core";
 import { toastConfig } from "../../config/toastConfig";
 
@@ -91,6 +92,8 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
                         url={mapLayers.current[layer].layer}
                         attribution={mapLayers.current[layer].attribution}
                     />
+
+                    <RenderReport />
 
                     {isUser ? (
                         <UserMap changeLayer={changeLayer} />

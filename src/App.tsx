@@ -22,6 +22,8 @@ import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import "./style/main.css"
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 setupIonicReact();
 

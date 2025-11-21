@@ -37,51 +37,54 @@ api.interceptors.request.use(
 api.interceptors.response.use(
     (response: AxiosResponse) => response,
     async (error: AxiosError): Promise<any> => {
-        // const originalRequest = error.config as AxiosRequestConfigWithRetry;
+        const originalRequest = error.config as AxiosRequestConfigWithRetry;
 
-        // if (error.response?.status === 401 && !originalRequest._retry) {
-        //     originalRequest._retry = true;
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            originalRequest._retry = true;
 
-        //     if (isRefreshing) {
-        //         return new Promise((resolve) => {
-        //             addRefreshSubscriber((newToken) => {
-        //                 if (originalRequest.headers) {
-        //                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        //                 }
-        //                 resolve(api(originalRequest));
-        //             });
-        //         });
-        //     }
+            if (isRefreshing) {
+                return new Promise((resolve) => {
+                    addRefreshSubscriber((newToken) => {
+                        if (originalRequest.headers) {
+                            originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                        }
+                        resolve(api(originalRequest));
+                    });
+                });
+            }
 
-        //     isRefreshing = true;
+            isRefreshing = true;
 
-        //     try {
-        //         const refreshToken = localStorage.getItem("refresh_token");
-        //         if (!refreshToken) throw new Error("No refresh token");
+            try {
+                const refreshToken = localStorage.getItem("refreshToken");
+                if (!refreshToken) throw new Error("No refresh token");
 
-        //         const res = await axios.post<{ accessToken: string }>(
-        //             `${api.defaults.baseURL}/auth/refresh`,
-        //             { refreshToken }
-        //         );
-        //         const newToken = res.data.accessToken;
+                const res = await api.get("/auth/me", {
+                    headers: {
+                        Authorization: `Bearer ${refreshToken}`
+                    }
+                })
+                const newToken = res.data.accessToken;
+                const newRefreshToken = res.data.refresh_token;
 
-        //         localStorage.setItem("token", newToken);
-        //         onTokenRefreshed(newToken);
+                localStorage.setItem("accessToken", newToken);
+                localStorage.setItem("refreshToken", newRefreshToken);
+                onTokenRefreshed(newToken);
 
-        //         if (originalRequest.headers) {
-        //             originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        //         }
-        //         return api(originalRequest);
-        //     } catch (refreshErr) {
-        //         console.error("Refresh token failed:", refreshErr);
-        //         localStorage.removeItem("token");
-        //         localStorage.removeItem("refresh_token");
-        //         window.location.href = "/login";
-        //         return Promise.reject(refreshErr);
-        //     } finally {
-        //         isRefreshing = false;
-        //     }
-        // }
+                if (originalRequest.headers) {
+                    originalRequest.headers.Authorization = `Bearer ${newToken}`;
+                }
+                return api(originalRequest);
+            } catch (refreshErr) {
+                console.error("Refresh token failed:", refreshErr);
+                localStorage.removeItem("token");
+                localStorage.removeItem("refresh_token");
+                window.location.href = "/login";
+                return Promise.reject(refreshErr);
+            } finally {
+                isRefreshing = false;
+            }
+        }
 
         return Promise.reject(error);
     }

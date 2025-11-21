@@ -1,4 +1,4 @@
-import { useMapEvent } from "react-leaflet"
+import { useMapEvents } from "react-leaflet"
 import { ZoomButton } from "../../pages/Map"
 import { useEffect, useRef, useState } from "react"
 import { toastConfig } from "../../../config/toastConfig"
@@ -9,11 +9,26 @@ interface StaffMap_interface {
 }
 
 const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer }) => {
+    const programmaticMove = useRef(false);
+
     // Map event
-    const mapRef = useRef<L.Map>(null);
-    const map = useMapEvent("movestart", () => {
-        if (isNote) setIsNote(false)
-    })
+    const map = useMapEvents({
+        movestart: () => {
+            if (isNote) setIsNote(false);
+
+            if (programmaticMove.current) {
+                return;
+            }
+            if (isTracking) {
+                stopTracking();
+            }
+        },
+        moveend: () => {
+            if (programmaticMove.current) {
+                programmaticMove.current = false;
+            }
+        }
+    });
 
     // Toggle report
     const [isReport, setIsReport] = useState<boolean>(false)
@@ -42,6 +57,10 @@ const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer }) => {
     const watchIdRef = useRef<number | null>(null);
     const trackingRef = useRef(isTracking);
 
+    useEffect(() => {
+        trackingRef.current = isTracking;
+    }, [isTracking]);
+
     const startTracking = () => {
         if (Capacitor.getPlatform() === "web" && isFirstTimeRef.current) {
             toastConfig({
@@ -60,7 +79,8 @@ const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer }) => {
                     const newPosition: [number, number] = [latitude, longitude];
                     setUserPosition(newPosition);
                     if (trackingRef.current) {
-                        mapRef.current?.flyTo(newPosition, 15);
+                        programmaticMove.current = true;
+                        map.flyTo(newPosition, 15);
                     }
                 },
                 () => {

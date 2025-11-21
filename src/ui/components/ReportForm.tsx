@@ -12,10 +12,59 @@ import { toastConfig, ToastType } from '../../config/toastConfig';
 // Component
 const SnapMap = lazy(() => import("./SnapMap"))
 
-// Confirm Location Form
-interface ConfirmLocationForm_interface {
-    confirm: (type: locationType) => void
+// Progress Popup Component
+interface ProgressPopup_interface {
+    stage: 'uploading' | 'submitting' | 'completed' | 'error';
+    onClose: () => void;
 }
+
+const ProgressPopup: React.FC<ProgressPopup_interface> = ({ stage, onClose }) => {
+    const stageInfo = {
+        uploading: {
+            icon: <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mainDark"></div>,
+            message: "Đang tải ảnh..."
+        },
+        submitting: {
+            icon: <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-mainDark"></div>,
+            message: "Đang gửi báo cáo..."
+        },
+        completed: {
+            icon: (
+                <svg className="size-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            ),
+            message: "Gửi báo cáo thành công"
+        },
+        error: {
+            icon: (
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-6 stroke-mainRed">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m9.75 9.75 4.5 4.5m0-4.5-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
+
+            ),
+            message: "Không thể gửi báo cáo"
+        }
+    };
+
+    return (
+        <div className="absolute top-0 left-0 h-full w-full bg-[rgba(0,0,0,0.75)] flex justify-center-safe items-center-safe px-mainTwoSidePadding z-60">
+            <div className="w-[90%] bg-white flex flex-col gap-5 items-center-safe px-mainTwoSidePadding rounded-main py-10">
+                {stageInfo[stage].icon}
+                <p className="text-csLarge font-medium text-center">{stageInfo[stage].message}</p>
+                {stage === 'completed' && (
+                    <button
+                        onClick={onClose}
+                        className="w-full mt-5 bg-mainRed text-white py-2.5! rounded-main!"
+                    >
+                        Đóng
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
 
 // Image Source Modal (similar to PhotoActionModal)
 interface ImageSourceModal_interface {
@@ -119,6 +168,8 @@ const ConfirmLocationForm: React.FC<ConfirmLocationForm_interface> = ({ confirm 
 }
 
 type locationType = "" | "myLocation" | "map"
+type ProgressStage = 'idle' | 'uploading' | 'submitting' | 'completed' | 'error';
+
 interface ReportForm_interface {
     onClose: (toast?: ToastType) => void // Renamed from toggleForm
 }
@@ -128,6 +179,7 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
     const [isImageSourceModalOpen, setIsImageSourceModalOpen] = useState(false);
     const [isSnapMap, setIsSnapMap] = useState<boolean>(false)
     const [isConfirmForm, setIsConfirmForm] = useState<boolean>(false)
+    const [progressStage, setProgressStage] = useState<ProgressStage>('idle');
 
     const takePicture = async (source: CameraSource) => {
         setIsImageSourceModalOpen(false); // Close modal after selection
@@ -141,13 +193,16 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
             });
 
             if (image.webPath) {
+                console.log("Photo taken, webPath:", image.webPath); // DEBUG LOG
                 setPhoto(image.webPath);
+            } else {
+                console.log("No image webPath received.");
             }
         } catch (error: any) {
+            console.error("Error in takePicture:", error);
             if (error.message === "User cancelled photos app" || error.message === "No image selected") {
                 console.log("User cancelled photo selection.");
             } else {
-                console.error("Error taking picture: ", error);
                 toastConfig({
                     toastType: "error",
                     toastMessage: "Không thể mở camera hoặc thư viện"
@@ -185,15 +240,61 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
         }
     };
 
-    const handleReportSubmit = (coords?: { lat: number, lng: number }) => {
-        // Logic to handle the report submission with coordinates
-        console.log("Submitting report with coordinates:", coords);
-        setIsSnapMap(false)
-        setIsConfirmForm(false)
-        toastConfig({
+    const resetForm = () => {
+        setPhoto(null);
+        setReportTitle('');
+        setReportContent('');
+    }
+
+    const handleCloseProgressPopup = () => {
+        setProgressStage('idle');
+        onClose({
             toastMessage: "Gửi báo cáo thành công",
             toastType: "success"
-        })
+        });
+    };
+
+    const handleReportSubmit = async (coords: { lat: number, lng: number }) => {
+        setIsSnapMap(false);
+        setIsConfirmForm(false);
+
+        // Stage 1: Processing Image
+        setProgressStage('uploading');
+
+        let imageFileForUpload = null;
+        if (photo) {
+            const response = await fetch(photo);
+            const imageBlob = await response.blob();
+            // To make it clearer, we'll create a File object, which is standard for uploads
+            imageFileForUpload = new File([imageBlob], "captured_image.jpg", { type: imageBlob.type });
+        }
+
+        // Log the data that is ready to be processed/uploaded
+        const dataToProcess = {
+            title: reportTitle,
+            content: reportContent,
+            imageFile: imageFileForUpload, // This is a File object representing the real image
+            coordinates: coords
+        };
+        console.log("Data ready for processing:", dataToProcess);
+
+        // Upload function
+
+
+        // Stage 2: Submitting report
+        setProgressStage('submitting');
+
+        // TODO: Upload the 'imageFileForUpload' object.
+        // The FormData API handles File objects automatically.
+        // Example:
+        // if (imageFileForUpload) {
+        //   const formData = new FormData();
+        //   formData.append('file', imageFileForUpload);
+        //   ...
+        // }
+
+        // Stage 3: Completed
+        setProgressStage('completed');
     }
 
     const handleConfirmLocation = (type: locationType) => {
@@ -292,7 +393,7 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
             </span>
 
             <span className="px-mainTwoSidePadding flex gap-2.5 items-center-safe pb-2.5">
-                <button type="button" className="w-1/3 h-10 bg-white text-csNormal border-[0.5px]! border-lightGray! rounded-small!">Làm mới</button>
+                <button type="button" onClick={resetForm} className="w-1/3 h-10 bg-white text-csNormal border-[0.5px]! border-lightGray! rounded-small!">Làm mới</button>
 
                 <button
                     onClick={() => { setIsConfirmForm(true) }}
@@ -305,6 +406,7 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
             {isConfirmForm && (<ConfirmLocationForm confirm={handleConfirmLocation} />)}
             {isSnapMap && (<SnapMap getPosition={handleReportSubmit} onClose={() => setIsSnapMap(false)} />)}
             {isImageSourceModalOpen && (<ImageSourceModal onClose={() => setIsImageSourceModalOpen(false)} onSelect={takePicture} />)}
+            {progressStage !== 'idle' && (<ProgressPopup stage={progressStage} onClose={handleCloseProgressPopup} />)}
         </div>
     )
 }

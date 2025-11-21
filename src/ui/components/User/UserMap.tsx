@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react"
 import { ZoomButton } from "../../pages/Map"
-import { Marker, useMapEvent } from "react-leaflet"
+import { Marker, useMapEvents } from "react-leaflet"
 import { toastConfig } from "../../../config/toastConfig"
 import { Capacitor } from "@capacitor/core"
 import L from 'leaflet'
@@ -25,12 +25,26 @@ interface UserMap_interface {
 }
 
 const UserMap: React.FC<UserMap_interface> = ({ changeLayer }) => {
+    const programmaticMove = useRef(false);
 
     // Map event
-    const mapRef = useRef<L.Map>(null);
-    const map = useMapEvent("movestart", () => {
-        if (isNote) setIsNote(false)
-    })
+    const map = useMapEvents({
+        movestart: () => {
+            if (isNote) setIsNote(false);
+
+            if (programmaticMove.current) {
+                return;
+            }
+            if (isTracking) {
+                stopTracking();
+            }
+        },
+        moveend: () => {
+            if (programmaticMove.current) {
+                programmaticMove.current = false;
+            }
+        }
+    });
 
     // Toggle report
     const [isReport, setIsReport] = useState<boolean>(false)
@@ -59,6 +73,10 @@ const UserMap: React.FC<UserMap_interface> = ({ changeLayer }) => {
     const watchIdRef = useRef<number | null>(null);
     const trackingRef = useRef(isTracking);
 
+    useEffect(() => {
+        trackingRef.current = isTracking;
+    }, [isTracking]);
+
     const startTracking = () => {
         if (Capacitor.getPlatform() === "web" && isFirstTimeRef.current) {
             toastConfig({
@@ -77,7 +95,8 @@ const UserMap: React.FC<UserMap_interface> = ({ changeLayer }) => {
                     const newPosition: [number, number] = [latitude, longitude];
                     setUserPosition(newPosition);
                     if (trackingRef.current) {
-                        mapRef.current?.flyTo(newPosition, 15);
+                        programmaticMove.current = true;
+                        map.flyTo(newPosition, 15);
                     }
                 },
                 () => {
