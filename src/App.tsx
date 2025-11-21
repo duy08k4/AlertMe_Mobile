@@ -22,6 +22,8 @@ import '@ionic/react/css/palettes/dark.system.css';
 
 /* Theme variables */
 import "./style/main.css"
+import "leaflet.markercluster/dist/MarkerCluster.css";
+import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 
 setupIonicReact();
 
@@ -40,24 +42,25 @@ import MainLayout from './ui/layouts/MainLayout';
 
 // Component
 import { ScreenSizeWarningPopup } from './hooks/DeviceCheck';
-
+import Auth from './ui/components/Auth';
 const App: React.FC = () => (
   <IonApp>
     <ScreenSizeWarningPopup />
     <IonReactRouter>
+      <Auth />
       <IonRouterOutlet animated={false}>
         {/* Introduction */}
         <Route exact path="/" children={<IntroductionPage />}></Route>
-        
+
         {/* Auth */}
         <Route exact path={routeConfig.login.root} children={<LoginPage />}></Route>
         <Route exact path={routeConfig.register.root} children={<RegisterPage />}></Route>
         <Route exact path={routeConfig.unAuth.root} children={<UnAuth />}></Route>
-        
+
         {/* Main layout */}
         <Route path={routeConfig.main.root + "/*"} children={<MainLayout />}></Route>
         <Redirect exact path='/main' to={routeConfig.main.map} />
-      
+
       </IonRouterOutlet>
     </IonReactRouter>
   </IonApp>

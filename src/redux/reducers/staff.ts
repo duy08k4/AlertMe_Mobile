@@ -21,11 +21,15 @@ export const staffSlice = createSlice({
     reducers: {
         setStaff: (state, action: PayloadAction<staffType>) => {
             state.staff = action.payload
+        },
+
+        setStaffAuth: (state, action: PayloadAction<boolean>)=> {
+            state.isAuth = action.payload
         }
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { setStaff } = staffSlice.actions
+export const { setStaff, setStaffAuth } = staffSlice.actions
 
 export default staffSlice.reducer

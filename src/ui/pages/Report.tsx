@@ -1,6 +1,6 @@
 // Import libraries
 import { IonPage } from "@ionic/react"
-import React, { useState } from "react"
+import React, { useEffect, useState } from "react"
 
 // Images
 import PlaceholderImage from "../../assets/AlertMe.png"
@@ -11,17 +11,23 @@ import { toastConfig } from "../../config/toastConfig"
 // Components
 import ReportForm from "../components/ReportForm"
 import NewsDetail from "../components/NewsDetail"
+import { reportService } from "../../services/report"
+import { useDispatch, useSelector } from "react-redux"
+import { RootState } from "../../redux/store"
+import { setMyReport } from "../../redux/reducers/user"
+import { ReportDetail } from "../../redux/reducers/report" // Import ReportDetail
+import { reportStatus, reportStatusColor } from "../../config/reportStatus"
 
 const ReportCard: React.FC<{
-    id: number,
+    report: ReportDetail, // Changed from id: number to report: ReportDetail
     isDeleting: boolean,
     isSelected: boolean,
-    onSelect: (id: number) => void,
+    onSelect: (id: string) => void, // Changed id type to string
     toggleReportDetail: () => void
-}> = ({ id, isDeleting, isSelected, onSelect, toggleReportDetail }) => {
+}> = ({ report, isDeleting, isSelected, onSelect, toggleReportDetail }) => { // Destructure report
     const handleClick = () => {
         if (isDeleting) {
-            onSelect(id)
+            onSelect(report.id) // Use report.id
         } else {
             toggleReportDetail()
         }
@@ -41,15 +47,20 @@ const ReportCard: React.FC<{
                 <img src={PlaceholderImage} className="w-full h-full object-cover" />
             </span>
 
-            <span className="w-full flex flex-col items-start-safe gap-1">
-                <p className="text-csNormal font-semibold text-left w-full">Sự cố mất nước</p>
-                <p className="text-csTiny sm:text-csNormal text-gray font-medium flex items-center gap-1">
+            <span className="w-full flex flex-col items-start-safe gap-1.5">
+                <p className="text-csNormal font-semibold text-left w-full">{report.name}</p>
+                
+                <span className="h-fit">
+                    <p className={`w-fit text-csNormal sm:text-csNormal ${reportStatusColor[report.status].bgColor} ${reportStatusColor[report.status].textColor} font-medium px-1.5`}>{reportStatus[report.status]}</p>
+                </span>
+                
+                <p className="text-csSmall sm:text-csNormal text-gray font-medium flex items-center gap-1">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-3 fill-gray">
                         <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clipRule="evenodd" />
                     </svg>
-                    22/10/2025
+
+                    {report.status === "closed" ? new Date(report.updated_at).toLocaleString("vi-VN") : new Date(report.created_at).toLocaleString("vi-VN")}
                 </p>
-                <p className="text-csTiny sm:text-csNormal text-yellow-500 font-medium">Chưa xử lý</p>
             </span>
         </span>
     )
@@ -57,12 +68,19 @@ const ReportCard: React.FC<{
 
 // Main component
 const ReportPage: React.FC = () => {
+    // User
+    const userId = useSelector((state: RootState) => state.user.user.id)
+    const myReport = useSelector((state: RootState) => state.user.myReport)
+
+    const dispatch = useDispatch()
+
     // State 
     const [isPending, setIsPending] = useState<boolean>(true)
     const [isReportDetail, setIsReportDetail] = useState<boolean>(false)
     const [isDeleting, setIsDeleting] = useState<boolean>(false)
-    const [selectedItems, setSelectedItems] = useState<number[]>([])
-    const [isReportFormOpen, setIsReportFormOpen] = useState<boolean>(false) // New state for ReportForm
+    const [selectedItems, setSelectedItems] = useState<string[]>([]) // Changed type to string[]
+    const [isReportFormOpen, setIsReportFormOpen] = useState<boolean>(false)
+    const [searchTerm, setSearchTerm] = useState<string>("") // New state for search term
 
     const changeList = (type: boolean) => {
         setIsPending(type)
@@ -77,10 +95,14 @@ const ReportPage: React.FC = () => {
         setSelectedItems([])
     }
 
-    const handleSelectItem = (id: number) => {
+    const handleSelectItem = (id: string) => { // Changed id type to string
         setSelectedItems(prev =>
             prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]
         )
+    }
+
+    const handleSearchChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(event.target.value)
     }
 
     const handleDelete = () => {
@@ -94,6 +116,24 @@ const ReportPage: React.FC = () => {
         toggleIsDeleting()
     }
 
+    // Main handler
+    useEffect(() => {
+        (async () => {
+            const getMyReport = await reportService.getUserReports(userId)
+
+            if (!getMyReport) return
+
+            dispatch(setMyReport(getMyReport))
+        })()
+    }, [])
+
+    // Filter reports based on isPending and searchTerm
+    const filteredReports = myReport.filter(report => {
+        const matchesStatus = isPending ? report.status !== "closed" : report.status === "closed"
+        const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase())
+        return matchesStatus && matchesSearch
+    })
+
     return (
         <IonPage>
             <div className="relative h-full w-full flex flex-col pt-2.5 gap-2.5">
@@ -103,14 +143,14 @@ const ReportPage: React.FC = () => {
                             onClick={() => { changeList(true) }}
                             className={`text-csNormal font-medium h-full w-1/2 ${isPending ? "bg-white" : "bg-transparent"} rounded-main!`}
                         >
-                            Chưa xử lý
+                            Chưa giải quyết
                         </button>
 
                         <button
                             onClick={() => { changeList(false) }}
                             className={`text-csNormal font-medium h-full w-1/2 ${!isPending ? "bg-white" : "bg-transparent"} rounded-main!`}
                         >
-                            Đã xử lý
+                            Đã giải quyết
                         </button>
                     </span>
                 </span>
@@ -118,8 +158,8 @@ const ReportPage: React.FC = () => {
                 <span className="flex-1 h-0 flex flex-col px-mainTwoSidePadding">
                     <span className="flex flex-col bg-white gap-2.5 pb-2.5">
                         <span className="w-full">
-                            <h2>{isPending ? "Báo cáo chưa xử lý" : "Báo cáo đã xử lý"}</h2>
-                            <p className="text-csNormal text-mainRed font-medium">Số lượng: 10 báo cáo</p>
+                            <h2>Báo cáo của tôi</h2>
+                            <p className="text-csNormal text-mainRed font-medium">Số lượng: {filteredReports.length} báo cáo</p>
                         </span>
 
                         <span className="w-full flex items-center-safe gap-2.5">
@@ -132,28 +172,32 @@ const ReportPage: React.FC = () => {
                                     className="text-csNormal! h-full w-full outline-none"
                                     type="text"
                                     placeholder="Tìm kiếm báo cáo..."
-                                 />
+                                    value={searchTerm} // Bind value to searchTerm
+                                    onChange={handleSearchChange} // Bind onChange to handleSearchChange
+                                />
                             </span>
 
-                            {!isDeleting && (
+                            {/* {!isDeleting && (
                                 <button className="mainShadow w-10 h-10 flex justify-center-safe items-center-safe rounded-small!" onClick={toggleIsDeleting}>
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                                         <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.124-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.077-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                     </svg>
                                 </button>
-                            )}
+                            )} */}
                         </span>
                     </span>
 
-                    <div className="w-full flex-1 overflow-auto flex flex-wrap justify-start gap-2 px-0.5 py-2.5">
-                        {isPending
-                            ? Array(10)
-                                .fill(0)
-                                .map((_, i) => <ReportCard key={i} id={i} isDeleting={isDeleting} isSelected={selectedItems.includes(i)} onSelect={handleSelectItem} toggleReportDetail={toggleReportDetail} />)
-                            : Array(5)
-                                .fill(0)
-                                .map((_, i) => <ReportCard key={i} id={i} isDeleting={isDeleting} isSelected={selectedItems.includes(i)} onSelect={handleSelectItem} toggleReportDetail={toggleReportDetail} />)
-                        }
+                    <div className="w-full flex-1 overflow-auto flex flex-wrap justify-start items-start content-start gap-2 px-0.5 py-2.5">
+                        {filteredReports.map((report, i) => (
+                            <ReportCard
+                                key={report.id} // Use report.id as key
+                                report={report}
+                                isDeleting={isDeleting}
+                                isSelected={selectedItems.includes(report.id)}
+                                onSelect={handleSelectItem}
+                                toggleReportDetail={toggleReportDetail}
+                            />
+                        ))}
                     </div>
                 </span>
 
