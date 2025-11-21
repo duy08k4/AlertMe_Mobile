@@ -8,6 +8,10 @@ import ChooseLocation from "../../assets/svg/ChooseLocation.svg"
 
 // Toast
 import { toastConfig, ToastType } from '../../config/toastConfig';
+import { reportService } from '../../services/report';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { addMyReport } from '../../redux/reducers/user';
 
 // Component
 const SnapMap = lazy(() => import("./SnapMap"))
@@ -30,11 +34,11 @@ const ProgressPopup: React.FC<ProgressPopup_interface> = ({ stage, onClose }) =>
         },
         completed: {
             icon: (
-                <svg className="size-16 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                <svg className="size-15 stroke-lime" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
             ),
-            message: "Gửi báo cáo thành công"
+            message: "Đã gửi báo cáo"
         },
         error: {
             icon: (
@@ -49,13 +53,25 @@ const ProgressPopup: React.FC<ProgressPopup_interface> = ({ stage, onClose }) =>
 
     return (
         <div className="absolute top-0 left-0 h-full w-full bg-[rgba(0,0,0,0.75)] flex justify-center-safe items-center-safe px-mainTwoSidePadding z-60">
-            <div className="w-[90%] bg-white flex flex-col gap-5 items-center-safe px-mainTwoSidePadding rounded-main py-10">
-                {stageInfo[stage].icon}
-                <p className="text-csLarge font-medium text-center">{stageInfo[stage].message}</p>
+            <div className="w-[90%] bg-white flex flex-col gap-5 items-center-safe px-mainTwoSidePadding rounded-main py-5">
+                <div className='w-full flex items-center gap-2.5'>
+                    {stageInfo[stage].icon}
+                    <span className='flex-1 flex flex-col'>
+                        <h4 className="font-medium">{stageInfo[stage].message}</h4>
+                        <p className='flex items-center-safe gap-1.5 text-csNormal font-medium text-gray'>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-4 fill-gray">
+                                <path fillRule="evenodd" d="M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25ZM12.75 6a.75.75 0 0 0-1.5 0v6c0 .414.336.75.75.75h4.5a.75.75 0 0 0 0-1.5h-3.75V6Z" clipRule="evenodd" />
+                            </svg>
+
+                            {new Date().toLocaleString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" })}
+                        </p>
+                    </span>
+                </div>
+
                 {stage === 'completed' && (
                     <button
                         onClick={onClose}
-                        className="w-full mt-5 bg-mainRed text-white py-2.5! rounded-main!"
+                        className="w-full bg-mainRed text-white py-2.5! rounded-main!"
                     >
                         Đóng
                     </button>
@@ -175,6 +191,11 @@ interface ReportForm_interface {
 }
 
 const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
+    // User
+    const userId = useSelector((state: RootState) => state.user.user.id)
+
+    const dispatch = useDispatch()
+
     const [photo, setPhoto] = useState<string | null>(null);
     const [isImageSourceModalOpen, setIsImageSourceModalOpen] = useState(false);
     const [isSnapMap, setIsSnapMap] = useState<boolean>(false)
@@ -254,6 +275,41 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
         });
     };
 
+    const handleSendReport = () => {
+        if (!photo && (!reportTitle || reportTitle.length === 0) && (!reportContent || reportContent.length === 0)) {
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Vui lòng điền đầy đủ thông tin'
+            })
+            return
+        }
+
+        if(photo) {
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Vui lòng chụp ảnh hiện trường'
+            })
+            return
+        }
+
+        if(!reportTitle || reportTitle.length === 0) {
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Vui lòng nhập tiêu đề'
+            })
+            return
+        }
+
+        if(!reportContent || reportContent.length === 0) {
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Vui lòng nhập nội dung'
+            })
+            return
+        }
+        setIsConfirmForm(true)
+    }
+
     const handleReportSubmit = async (coords: { lat: number, lng: number }) => {
         setIsSnapMap(false);
         setIsConfirmForm(false);
@@ -265,36 +321,42 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
         if (photo) {
             const response = await fetch(photo);
             const imageBlob = await response.blob();
-            // To make it clearer, we'll create a File object, which is standard for uploads
             imageFileForUpload = new File([imageBlob], "captured_image.jpg", { type: imageBlob.type });
         }
 
-        // Log the data that is ready to be processed/uploaded
-        const dataToProcess = {
-            title: reportTitle,
-            content: reportContent,
-            imageFile: imageFileForUpload, // This is a File object representing the real image
-            coordinates: coords
+        if (!imageFileForUpload) {
+            return
+        }
+
+        // Upload image
+        const imgUrl = await reportService.uploadImage(imageFileForUpload)
+
+        if (!imgUrl) {
+            setProgressStage("error")
+            return
+        }
+        const reportData = {
+            name: reportTitle,
+            details: reportContent,
+            attachment_paths: [imgUrl],
+            lat: coords.lat,
+            lng: coords.lng,
+            user_id: userId
         };
-        console.log("Data ready for processing:", dataToProcess);
-
-        // Upload function
-
 
         // Stage 2: Submitting report
         setProgressStage('submitting');
+        const sendReport = await reportService.sendReportData(reportData)
+        
+        if (!sendReport) {
+            setProgressStage("error")
+            return
+        }
 
-        // TODO: Upload the 'imageFileForUpload' object.
-        // The FormData API handles File objects automatically.
-        // Example:
-        // if (imageFileForUpload) {
-        //   const formData = new FormData();
-        //   formData.append('file', imageFileForUpload);
-        //   ...
-        // }
-
+        
         // Stage 3: Completed
         setProgressStage('completed');
+        dispatch(addMyReport(sendReport))
     }
 
     const handleConfirmLocation = (type: locationType) => {
@@ -396,7 +458,7 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
                 <button type="button" onClick={resetForm} className="w-1/3 h-10 bg-white text-csNormal border-[0.5px]! border-lightGray! rounded-small!">Làm mới</button>
 
                 <button
-                    onClick={() => { setIsConfirmForm(true) }}
+                    onClick={() => { handleSendReport }}
                     className="flex-1 h-10 text-white bg-mainRed text-csNormal flex items-center-safe justify-center-safe gap-2.5 rounded-small!"
                 >
                     Gửi Báo cáo

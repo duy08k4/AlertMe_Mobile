@@ -21,21 +21,6 @@ const SnapMap: React.FC<SnapMap_interface> = ({ getPosition, onClose }) => {
         return null;
     }
 
-    const handleMyLocation = () => {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition((position) => {
-                const { latitude, longitude } = position.coords;
-                if (map) {
-                    map.flyTo([latitude, longitude], 15);
-                }
-            }, () => {
-                alert("Không thể lấy vị trí của bạn. Vui lòng kiểm tra cài đặt trình duyệt.");
-            });
-        } else {
-            alert("Trình duyệt của bạn không hỗ trợ Geolocation.");
-        }
-    };
-
     return (
         <div className="absolute top-0 left-0 h-full w-full bg-white flex flex-col z-50">
             <MapContainer
@@ -60,17 +45,9 @@ const SnapMap: React.FC<SnapMap_interface> = ({ getPosition, onClose }) => {
                 </span>
 
                 {/* Back Button */}
-                <button onClick={onClose} className="absolute z-1000 top-5 left-5 bg-white p-2 rounded-full mainShadow">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
+                <button onClick={onClose} className="absolute z-1000 top-5 left-5 bg-white p-2! rounded-full! mainShadow">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-5">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-                    </svg>
-                </button>
-
-                {/* My Location Button */}
-                 <button onClick={handleMyLocation} className="absolute z-1000 top-5 right-5 bg-white p-2 rounded-full mainShadow">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18Z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 3.75v.001M12 12.75a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
                     </svg>
                 </button>
 
@@ -86,7 +63,7 @@ const SnapMap: React.FC<SnapMap_interface> = ({ getPosition, onClose }) => {
                         </span>
                         <button
                             onClick={() => getPosition(center)}
-                            className="w-full bg-mainLightBlue text-csBig! text-white flex items-center-safe justify-center-safe gap-2 py-2.5! rounded-main!"
+                            className="w-full bg-mainRed text-csBig! text-white flex items-center-safe justify-center-safe gap-2 py-2.5! rounded-main!"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="size-5 fill-white">
                                 <path fillRule="evenodd" d="M12 21.638c-5.042-5.042-7.86-8.28-7.86-11.638a7.86 7.86 0 0 1 15.72 0c0 3.358-2.818 6.596-7.86 11.638ZM12 12a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" clipRule="evenodd" />

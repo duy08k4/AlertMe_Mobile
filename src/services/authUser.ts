@@ -4,13 +4,6 @@ import { userData } from "../redux/reducers/user";
 
 
 export class authUser {
-
-    private async sendVerificationMail(email: string) {
-        const { } = await api.post("/auth/email/resend-verification", {
-
-        })
-    }
-
     // Only user(citizen)
     public static async signup(email: string, password: string, username: string) {
         if (!email || !password || !username) {
@@ -155,6 +148,18 @@ export class authUser {
             })
             console.error(error)
             return false
+        }
+    }
+
+    public static async signout() {
+        try {
+            const {  } = await api.post("/auth/signout", {
+            authorization: localStorage.getItem("accessToken")
+        })
+        } 
+        finally {
+            localStorage.removeItem("accessToken")
+            localStorage.removeItem("lastSOSTimestamp")
         }
     }
 

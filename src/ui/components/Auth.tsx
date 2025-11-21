@@ -14,7 +14,7 @@ const Auth: React.FC = () => {
 
     useEffect(() => {
         autoAuth()
-    }, [pathLocation.pathname])
+    }, [])
 
     const autoAuth = async () => {
         const isAuth: userData['user'] | boolean = await authUser.autosigin()
@@ -34,7 +34,7 @@ const Auth: React.FC = () => {
                 router.push(routeConfig.main.root)
             }
         } else {
-            router.push("/", 'root')
+            router.push(routeConfig.login.root, 'root', 'replace')
         }
     }
     return (

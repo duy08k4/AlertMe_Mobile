@@ -1,14 +1,20 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from '../../redux/store';
+import { reportService } from '../../services/report';
+import { setReportDetail } from '../../redux/reducers/report';
 import Logo from "../../assets/AlertMe.png";
-
+import NotFound from "../../assets/Pattern/NotFound.svg"
+import { reportStatus, reportStatusColor } from '../../config/reportStatus';
+import uniqolor from 'uniqolor';
 
 interface PinMarkerProps {
     position: [number, number];
-    color?: string;
+    color: string;
     size?: number;
 }
 const PinMarker: React.FC<PinMarkerProps> = ({ position, color = '#f25255', size = 32 }) => {
@@ -31,14 +37,29 @@ interface NewsDetailProps {
     onClose: () => void;
 }
 
-const NewsDetail: React.FC<NewsDetailProps> = ({ onClose }) => {
+const NewsDetail: React.FC<NewsDetailProps> = ({ onClose}) => {
+    const reportID = useSelector((state: RootState) => state.report.reportDetailID)
+    const reportDetail = useSelector((state: RootState) => state.report.reportDetail)
     const images = [Logo, Logo, Logo];
+    const [isData, setIsData] = useState<boolean>(false)
 
-    const position: [number, number] = [10.7769, 106.7009];
+    const dispatch = useDispatch()
 
-    const handleViewOnMap = () => {
-        alert("Chưa có gì đâu hẹ hẹ :v")
-    }
+
+    useEffect(() => {
+        (async () => {
+            if (!reportID || !reportDetail.id || reportID !== reportDetail.id) {
+                const reportData = await reportService.getAReport(reportID)
+
+                if (reportData) {
+                    setIsData(true)
+                    dispatch(setReportDetail(reportData))
+                } else {
+                    setIsData(false)
+                }
+            }
+        })()
+    }, [reportID])
 
     return (
         <motion.div
@@ -48,8 +69,8 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ onClose }) => {
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className="fixed top-0 left-0 w-full h-full bg-white flex flex-col"
         >
-            {/* Header */}
-            <header className="shrink-0 flex justify-between items-center px-mainTwoSidePadding border-b border-gray-200 bg-white py-2.5">
+
+            <header className="shrink-0 flex justify-between gap-3.5 items-center px-mainTwoSidePadding border-b border-gray-200 bg-white py-2.5">
                 <button
                     onClick={onClose}
                     className="mainShadow flex justify-center items-center h-10 w-10 transition-colors rounded-full!"
@@ -59,88 +80,88 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ onClose }) => {
                     </svg>
 
                 </button>
-                <h5 className="text-lg font-semibold text-gray-800">Chi Tiết Sự Cố</h5>
-                <button className="mainShadow flex justify-center items-center h-10 w-10 rounded-small! transition-colors">
+                <span className='h-full flex-1'>
+                    <h5 className="text-lg font-semibold text-gray-800">
+                        {(Object.keys(reportDetail).length === 0) ? "Không tìm thấy dữ liệu" : "Chi Tiết Sự Cố"}
+                    </h5>
+                </span>
+                {/* <button className="mainShadow flex justify-center items-center h-10 w-10 rounded-small! transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-4 text-gray-700">
                         <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
                     </svg>
-                </button>
+                </button> */}
             </header>
 
-            {/* Scrollable Content */}
             <div className="flex-1 overflow-y-auto flex flex-col gap-3.5 px-mainTwoSidePadding py-2.5">
-                {/* Image Gallery */}
-                <div className="mainShadow h-48! rounded-main! border border-gray-200">
-                    <div className="flex w-full h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory">
-                        {images.map((img, index) => (
-                            <div key={index} className="w-full h-full shrink-0 snap-center flex justify-center items-center bg-white">
-                                <img src={img} className="h-full object-cover object-center" alt={`Report image ${index + 1}`} loading='lazy' />
+                {(Object.keys(reportDetail).length === 0) ? (
+                    <div className='h-full w-full flex flex-col justify-center-safe items-center-safe gap-2.5'>
+                        <img src={NotFound} className='h-[200px]' />
+                    </div>
+                ) : (
+
+                    <>
+                        <div className="mainShadow h-48! rounded-main! border border-gray-200">
+                            <div className="flex w-full h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory rounded-small">
+                                {reportDetail.attachment_paths && reportDetail.attachment_paths.map((img, index) => (
+                                    <div key={index} className="w-full h-full shrink-0 snap-center flex justify-center items-center bg-white">
+                                        <img src={img} className="h-full object-cover object-center" alt={`Report image ${index + 1}`} loading='lazy' />
+                                    </div>
+                                ))}
                             </div>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Report Title */}
-                <div className="text-center">
-                    <h2 className="text-2xl font-bold text-gray-900">Tên Báo Cáo Sự Cố</h2>
-                    <p className="text-csNormal text-gray mt-1"><b className='text-gray'>Tạo lúc: </b>12/11/2025 10:30 AM</p>
-                </div>
-
-                {/* Incident Details Section */}
-                <div className="bg-white p-4 rounded-lg mainShadow">
-                    {/* <h4 className="text-lg font-semibold text-gray-800 mb-3">Thông Tin Chi Tiết</h4> */}
-                    <div className="grid grid-cols-2 gap-4 text-sm">
-                        <div className="space-y-1">
-                            <p className="text-gray text-csMedium font-medium truncate">Mức độ:</p>
-                            <p className="font-semibold text-csNormal text-red-600 bg-red-100 px-2 py-1 rounded-md inline-block">Cao</p>
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-gray text-csMedium font-medium truncate">Loại sự cố:</p>
-                            <p className="font-semibold text-csNormal text-gray-800">Tai Nạn Giao Thông</p>
+
+                        <div className="flex flex-col items-center-safe gap-1.5">
+                            <h2 className="leading-none! text-2xl font-bold text-gray-900">{reportDetail.name}</h2>
+                            <p className="text-csMedium text-gray mt-1"><b className='text-gray'>Tạo lúc: </b>{new Date(reportDetail.created_at).toLocaleString("vi-VN")}</p>
+                            
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-gray text-csMedium font-medium truncate">Trạng thái:</p>
-                            <p className="font-semibold text-csNormal text-green-600 bg-green-100 px-2 py-1 rounded-md inline-block">Đã Xử Lý</p>
+
+                        <div className="bg-white p-4 rounded-lg mainShadow">
+                            <div className="grid grid-cols-2 gap-4 text-sm">
+                                <div className="space-y-1">
+                                    <p className="text-gray text-csMedium font-medium truncate">Trạng thái:</p>
+                                    <p className={`font-semibold text-csNormal ${reportStatusColor[reportDetail.status].textColor} ${reportStatusColor[reportDetail.status].bgColor} px-2 py-1 rounded-md inline-block`}>{reportStatus[reportDetail.status]}</p>
+                                </div>
+                                <div className="space-y-1">
+                                    <p className="text-gray text-csMedium font-medium truncate">Đã xử lý lúc:</p>
+                                    <p className="font-semibold text-csNormal text-gray-800">{new Date(reportDetail.updated_at).toLocaleString("vi-VN")}</p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="space-y-1">
-                            <p className="text-gray text-csMedium font-medium truncate">Đã xử lý lúc:</p>
-                            <p className="font-semibold text-csNormal text-gray-800">12/11/2025 11:45 AM</p>
+
+                        <div className="bg-white p-4 rounded-lg mainShadow">
+                            <h4 className="text-lg font-semibold text-gray-800 mb-2">Mô Tả</h4>
+                            <p className="text-gray text-csMedium leading-relaxed">{reportDetail.details}</p>
                         </div>
-                    </div>
-                </div>
 
-                {/* Description Section */}
-                <div className="bg-white p-4 rounded-lg mainShadow">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Mô Tả</h4>
-                    <p className="text-gray text-csMedium leading-relaxed">
-                        Đây là một mô tả chi tiết về sự cố đã xảy ra. Ví dụ: "Vào lúc 10:00 sáng, một vụ tai nạn giao thông nghiêm trọng đã xảy ra tại giao lộ X và Y, liên quan đến hai xe ô tô và một xe máy..."
-                    </p>
-                </div>
+                        <div className="bg-white p-4 rounded-lg mainShadow">
+                            <h4 className="text-lg font-semibold text-gray-800 mb-2">Vị Trí Sự Cố</h4>
+                            <div className="w-full h-80 bg-gray-200 rounded-small overflow-hidden">
+                                {reportDetail.lat !== undefined && reportDetail.lng !== undefined && (
+                                    <MapContainer center={[reportDetail.lat, reportDetail.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
+                                        <TileLayer
+                                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                        />
+                                        <PinMarker position={[reportDetail.lat, reportDetail.lng]} color={uniqolor(reportDetail.id).color} />
+                                    </MapContainer>
+                                )}
+                            </div>
 
-                {/* Map Section */}
-                <div className="bg-white p-4 rounded-lg mainShadow">
-                    <h4 className="text-lg font-semibold text-gray-800 mb-2">Vị Trí Sự Cố</h4>
-                    <div className="w-full h-56 bg-gray-200 rounded-md overflow-hidden">
-                        <MapContainer center={position} zoom={13} scrollWheelZoom={false} style={{ height: '100%', width: '100%' }}>
-                            <TileLayer
-                                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                            />
-                            <PinMarker position={position} />
-                        </MapContainer>
-                    </div>
+                            {/* <div className='w-full h-fit'>
+                                <button className='w-full h-fit bg-mainRed flex gap-2.5 justify-center-safe items-center-safe text-white text-csNormal py-2.5!' onClick={handleViewOnMap}>
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="size-5">
+                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
+                                    </svg>
 
-                    <div className='w-full h-fit'>
-                        <button className='w-full h-fit bg-mainRed flex gap-2.5 justify-center-safe items-center-safe text-white text-csNormal py-2.5!' onClick={handleViewOnMap}>
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="size-5">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
-                            </svg>
-
-                            Xem trên B.Đồ
-                        </button>
-                    </div>
-                </div>
+                                    Xem trên B.Đồ
+                                </button>
+                            </div> */}
+                        </div>
+                    </>
+                )}
             </div>
+
         </motion.div>
     );
 };

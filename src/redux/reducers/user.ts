@@ -1,5 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 import type { PayloadAction } from '@reduxjs/toolkit'
+import { ReportDetail } from './report'
 
 
 export type userData = {
@@ -10,7 +11,7 @@ export type userData = {
         email: string,
         supabase_id: string,
         role_id: string,
-        created_at: string,
+        created_at: string, // 2025-11-18T23:59:33.379Z
         updated_at: string, // 2025-11-18T23:59:33.379Z
         role: {
             id: string,
@@ -34,36 +35,14 @@ export type userData = {
     expires_at: number
 }
 
-export type myReport = {
-    name: string,
-    details: string,
-    attachment_paths: string[],
-    lat: string | number,
-    lng: string | number,
-    user_id: string,
-
-
-    // id?: "ceb01f4f-3971-4823-b38c-3be209ed77a1",
-    // name: "Broken streetlight on 5th Ave",
-    // details: "The streetlight has been flickering for two nights.",
-    // status?: "pending",
-    // attachment_path: null,
-    // lat: 10.762622,
-    // lng: 106.660172,
-    // user_id: "f46ea729-4d92-430a-a4d7-62376d7f7986",
-    // created_at: "2025-11-20T08:46:42.431Z",
-    // updated_at: "2025-11-20T08:46:42.431Z"
-
-}
-
 export interface UserState {
-    user: userData['user'] | {},
+    user: userData['user'],
     isAuth: boolean,
-    myReport: myReport[]
+    myReport: ReportDetail[]
 }
 
 const initialState: UserState = {
-    user: {},
+    user: {} as userData['user'],
     isAuth: true,
     myReport: []
 }
@@ -79,14 +58,19 @@ export const userSlice = createSlice({
         setUserAuth: (state, action: PayloadAction<boolean>) => {
             state.isAuth = action.payload
         },
-        addMyReport: ((state, action: PayloadAction<myReport>) => {
+
+        addMyReport: (state, action: PayloadAction<ReportDetail>) => {
             state.myReport.push(action.payload)
-        }),
+        },
+
+        setMyReport: (state, action: PayloadAction<ReportDetail[]>) => {
+            state.myReport = action.payload
+        }
 
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { setUser, setUserAuth, addMyReport } = userSlice.actions
+export const { setUser, setUserAuth, addMyReport, setMyReport } = userSlice.actions
 
 export default userSlice.reducer

@@ -26,7 +26,7 @@ function addRefreshSubscriber(callback: (token: string) => void) {
 
 api.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem('token')
+        const token = localStorage.getItem('accessToken')
         if (token) config.headers.Authorization = `Bearer ${token}`
 
         return config
@@ -59,11 +59,9 @@ api.interceptors.response.use(
                 const refreshToken = localStorage.getItem("refreshToken");
                 if (!refreshToken) throw new Error("No refresh token");
 
-                const res = await api.get("/auth/me", {
-                    headers: {
-                        Authorization: `Bearer ${refreshToken}`
-                    }
-                })
+                const res = await api.post("/auth/refresh", {
+                refresh_token: refreshToken
+            })
                 const newToken = res.data.accessToken;
                 const newRefreshToken = res.data.refresh_token;
 
@@ -77,8 +75,8 @@ api.interceptors.response.use(
                 return api(originalRequest);
             } catch (refreshErr) {
                 console.error("Refresh token failed:", refreshErr);
-                localStorage.removeItem("token");
-                localStorage.removeItem("refresh_token");
+                localStorage.removeItem("accessToken");
+                localStorage.removeItem("refreshToken");
                 window.location.href = "/login";
                 return Promise.reject(refreshErr);
             } finally {

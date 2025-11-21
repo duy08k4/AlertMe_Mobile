@@ -35,18 +35,7 @@ const PinMarker: React.FC<PinMarkerProps> = ({
 
 const RenderReport: React.FC = () => {
     const listReport = useSelector((state: RootState) => state.report.reports) //Shorted data
-    const dispatch = useDispatch()
-    useEffect(() => {
-
-        (async () => {
-            const getReportForMap = await reportService.getReportForMap()
-            if (getReportForMap) {
-                dispatch(setReport(getReportForMap))
-            }
-
-        })()
-    }, [])
-
+    
     return (
         <MarkerClusterGroup>
             {listReport.length === 0 ? null : (

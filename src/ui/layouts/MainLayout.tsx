@@ -10,6 +10,8 @@ import { RootState } from "../../redux/store";
 import NewsPage from "../pages/News";
 import TaskPage from "../pages/Task";
 import ReportPage from "../pages/Report";
+import GetData from "../components/GetData";
+import MorePage from "../pages/More";
 
 
 // Staff menu
@@ -146,6 +148,7 @@ const MainLayout: React.FC = () => {
 
     return (
         <IonTabs>
+            <GetData />
             <IonRouterOutlet className="z-0">
                 {/* Map */}
                 <Route path={routeConfig.main.map} children={<MapPage isUser={userAuth} />} exact />
@@ -159,6 +162,9 @@ const MainLayout: React.FC = () => {
 
                 {/* News */}
                 <Route path={routeConfig.main.news} children={<NewsPage />} exact />
+
+                {/* More */}
+                <Route path={routeConfig.main.moreInfo} children={<MorePage />} exact />
 
             </IonRouterOutlet>
 
