@@ -276,6 +276,7 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
     };
 
     const handleSendReport = () => {
+        console.log("hẹ hẹ hẹ")
         if (!photo && (!reportTitle || reportTitle.length === 0) && (!reportContent || reportContent.length === 0)) {
             toastConfig({
                 toastType: 'error',
@@ -284,7 +285,7 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
             return
         }
 
-        if(photo) {
+        if(!photo) {
             toastConfig({
                 toastType: 'error',
                 toastMessage: 'Vui lòng chụp ảnh hiện trường'
@@ -458,7 +459,7 @@ const ReportForm: React.FC<ReportForm_interface> = ({ onClose }) => {
                 <button type="button" onClick={resetForm} className="w-1/3 h-10 bg-white text-csNormal border-[0.5px]! border-lightGray! rounded-small!">Làm mới</button>
 
                 <button
-                    onClick={() => { handleSendReport }}
+                    onClick={handleSendReport}
                     className="flex-1 h-10 text-white bg-mainRed text-csNormal flex items-center-safe justify-center-safe gap-2.5 rounded-small!"
                 >
                     Gửi Báo cáo

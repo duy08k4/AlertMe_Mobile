@@ -35,6 +35,10 @@ const Tag: React.FC<Tag_interface> = ({ report, reportDetail }) => {
             onClick={chooseSpecies}
             className={`relative w-full h-fit flex gap-2.5 items-center px-5 border-[0.5px]! border-lightGray py-1.5 rounded-main border-l-4 border-l-[${randomColor}]`}
         >
+            <span className="h-[50px] aspect-square overflow-hidden flex justify-center items-center rounded-small">
+                <img src={report.attachment_paths[0]} className="h-full w-full object-cover object-center" loading="lazy" />
+            </span>
+            
             <span className="flex-1">
                 <p className="text-csNormal font-medium">{report.name}</p>
                 <p className="flex items-center text-csSmall text-gray">{reportStatus[report.status]}</p>
