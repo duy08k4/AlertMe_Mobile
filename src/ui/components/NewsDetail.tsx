@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import L from 'leaflet'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet';
@@ -7,10 +7,11 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { reportService } from '../../services/report';
 import { setReportDetail } from '../../redux/reducers/report';
-import Logo from "../../assets/AlertMe.png";
 import NotFound from "../../assets/Pattern/NotFound.svg"
 import { reportStatus, reportStatusColor } from '../../config/reportStatus';
 import uniqolor from 'uniqolor';
+import { toastConfig } from '../../config/toastConfig';
+import { toast } from 'react-toastify';
 
 interface PinMarkerProps {
     position: [number, number];
@@ -40,8 +41,6 @@ interface NewsDetailProps {
 const NewsDetail: React.FC<NewsDetailProps> = ({ onClose}) => {
     const reportID = useSelector((state: RootState) => state.report.reportDetailID)
     const reportDetail = useSelector((state: RootState) => state.report.reportDetail)
-    const images = [Logo, Logo, Logo];
-    const [isData, setIsData] = useState<boolean>(false)
 
     const dispatch = useDispatch()
 
@@ -49,14 +48,16 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ onClose}) => {
     useEffect(() => {
         (async () => {
             if (!reportID || !reportDetail.id || reportID !== reportDetail.id) {
+                const pendingToast = toastConfig({
+                    pending: true,
+                    toastMessage: 'Đang tải dữ liệu sự cố...'
+                })
                 const reportData = await reportService.getAReport(reportID)
 
                 if (reportData) {
-                    setIsData(true)
                     dispatch(setReportDetail(reportData))
-                } else {
-                    setIsData(false)
-                }
+                    toast.dismiss(pendingToast)
+                } 
             }
         })()
     }, [reportID])

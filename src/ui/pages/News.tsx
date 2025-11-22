@@ -107,7 +107,7 @@ const NewsPage: React.FC = () => {
                         <input
                             type="text"
                             placeholder="Tìm kiếm theo tên sự cố..."
-                            className="mainShadow flex-1 h-10 px-3 text-csNormal! outline-[0.5px] outline-gray rounded-small"
+                            className="mainShadow flex-1 h-10 px-3 text-csNormal! border-[0.5px] border-lightGray rounded-small"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />

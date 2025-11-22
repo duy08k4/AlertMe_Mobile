@@ -187,25 +187,27 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
                         <StaffMap changeLayer={changeLayer} />
                     )}
 
-                    <span className="absolute h-fit w-[80%] z-1000 bottom-5 left-1/2 translate-x-[-50%] flex gap-2.5">
-                        <button
-                            className="mainShadow flex-1 bg-mainRed text-white! rounded-small!"
-                            onClick={handleSOSClick}
-                        >
-                            SOS
-                        </button>
+                    {!isDiscoveredReport && (
+                        <span className="absolute h-fit w-[80%] z-1000 bottom-5 left-1/2 translate-x-[-50%] flex gap-2.5">
+                            <button
+                                className="mainShadow flex-1 bg-mainRed text-white! rounded-small!"
+                                onClick={handleSOSClick}
+                            >
+                                SOS
+                            </button>
 
-                        <button
-                            className="mainShadow h-fit w-fit bg-mainDark text-white! font-medium flex items-center gap-2.5 px-5! py-2.5! rounded-small!"
-                            onClick={handleDiscover}
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="size-4">
-                                <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                            </svg>
+                            <button
+                                className="mainShadow h-fit w-fit bg-mainDark text-white! font-medium flex items-center gap-2.5 px-5! py-2.5! rounded-small!"
+                                onClick={handleDiscover}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="size-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                                </svg>
 
-                            Xem sự cố
-                        </button>
-                    </span>
+                                Xem sự cố
+                            </button>
+                        </span>
+                    )}
                 </MapContainer>
 
                 {isDiscoveredReport && (<ListDiscoveredReport reportDetail={handleDetail} onCloseDiscoveredReportList={handleDiscover} />)}

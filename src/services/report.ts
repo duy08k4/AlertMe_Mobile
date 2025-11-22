@@ -65,11 +65,16 @@ export class reportService {
     // Get reports based on userId - All reports of user(citizen)
     public static async getUserReports(userId: string) {
         if (!userId) {
-            toastConfig({
-                toastType: 'error',
-                toastMessage: 'Không tìm thấy dữ liệu'
-            })
-            return false
+            const invalidDataToast = setTimeout(() => {
+                toastConfig({
+                    toastType: 'error',
+                    toastMessage: 'Không tìm thấy dữ liệu'
+                })
+            }, 10000)
+            return {
+                status: false,
+                invalidDataToast
+            }
         }
 
         try {
@@ -84,21 +89,35 @@ export class reportService {
                     toastType: 'success',
                     toastMessage: 'Đã tải xuống dữ liệu'
                 })
-                return data as ReportDetail[]
+
+                return {
+                    status: true,
+                    data: data as ReportDetail[]
+                }
             }
 
-            toastConfig({
-                toastType: 'error',
-                toastMessage: 'Không tìm thấy dữ liệu'
-            })
-            return false
+            const invalidDataToast = setTimeout(() => {
+                toastConfig({
+                    toastType: 'error',
+                    toastMessage: 'Không tìm thấy dữ liệu'
+                })
+            }, 10000)
+            return {
+                status: false,
+                invalidDataToast
+            }
         } catch (error) {
-            toastConfig({
-                toastType: 'error',
-                toastMessage: 'Không tìm thấy dữ liệu'
-            })
+            const invalidDataToast = setTimeout(() => {
+                toastConfig({
+                    toastType: 'error',
+                    toastMessage: 'Không tìm thấy dữ liệu'
+                })
+            }, 10000)
             console.error(error)
-            return false
+            return {
+                status: false,
+                invalidDataToast
+            }
         }
     }
 
@@ -115,7 +134,7 @@ export class reportService {
 
             const dataReport = {
                 name: reportData.name,
-                details: reportData,
+                details: reportData.details,
                 attachment_paths: reportData.attachment_paths,
                 lat: reportData.lat,
                 lng: reportData.lng,

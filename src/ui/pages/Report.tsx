@@ -1,6 +1,6 @@
 // Import libraries
 import { IonPage } from "@ionic/react"
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useRef, useState } from "react"
 
 // Images
 import PlaceholderImage from "../../assets/AlertMe.png"
@@ -81,6 +81,7 @@ const ReportPage: React.FC = () => {
     const [selectedItems, setSelectedItems] = useState<string[]>([]) // Changed type to string[]
     const [isReportFormOpen, setIsReportFormOpen] = useState<boolean>(false)
     const [searchTerm, setSearchTerm] = useState<string>("") // New state for search term
+    const invalidToast = useRef<NodeJS.Timeout | null>(null)
 
     const changeList = (type: boolean) => {
         setIsPending(type)
@@ -120,12 +121,20 @@ const ReportPage: React.FC = () => {
     useEffect(() => {
         (async () => {
             const getMyReport = await reportService.getUserReports(userId)
+            
+            if (!getMyReport.status) {
+                invalidToast.current = getMyReport.invalidDataToast ?? null
+                console.log("Looi")
+                return
+            }
 
-            if (!getMyReport) return
-
-            dispatch(setMyReport(getMyReport))
+            if (getMyReport.data) {
+                dispatch(setMyReport(getMyReport.data))
+                if(invalidToast.current) clearTimeout(invalidToast.current)
+            } else {
+        console.log("wow")}
         })()
-    }, [])
+    }, [userId])
 
     // Filter reports based on isPending and searchTerm
     const filteredReports = myReport.filter(report => {
