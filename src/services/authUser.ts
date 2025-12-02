@@ -1,6 +1,10 @@
 import api from "../config/gateway";
+import { routeConfig } from "../config/routeConfig";
 import { toastConfig } from "../config/toastConfig";
-import { userData } from "../redux/reducers/user";
+import { setStaff, setStaffAuth } from "../redux/reducers/staff";
+import { setUser, setUserAuth, userData } from "../redux/reducers/user";
+import { store } from "../redux/store";
+import { authUserGuard } from "./authUser.guard";
 
 
 export class authUser {
@@ -121,14 +125,29 @@ export class authUser {
             })
 
             if (status === 200) {
+                const userLogin = data as userData
+
                 toastConfig({
                     toastType: 'success',
                     toastMessage: 'Đăng nhập thành công'
                 })
 
-                localStorage.setItem("accessToken", data.access_token)
-                localStorage.setItem("refreshToken", data.refresh_token)
-                return data as userData
+                localStorage.setItem("accessToken", userLogin.access_token)
+                localStorage.setItem("refreshToken", userLogin.refresh_token)
+
+
+                if (userLogin.user.role.name === 'user') {
+                    store.dispatch(setUserAuth(true))
+                    store.dispatch(setStaffAuth(false))
+                    store.dispatch(setUser(userLogin.user))
+                } else {
+                    store.dispatch(setUserAuth(false))
+                    store.dispatch(setStaffAuth(true))
+                    store.dispatch(setStaff(userLogin.user))
+                }
+
+                return routeConfig.main.root
+
             }
 
             if (status === 401) {
@@ -153,10 +172,10 @@ export class authUser {
 
     public static async signout() {
         try {
-            const {  } = await api.post("/auth/signout", {
-            authorization: localStorage.getItem("accessToken")
-        })
-        } 
+            const { } = await api.post("/auth/signout", {
+                authorization: localStorage.getItem("accessToken")
+            })
+        }
         finally {
             localStorage.removeItem("accessToken")
             localStorage.removeItem("lastSOSTimestamp")
@@ -179,7 +198,7 @@ export class authUser {
             if (status === 200) {
                 localStorage.setItem("accessToken", data.access_token)
                 localStorage.setItem("refreshToken", data.refresh_token)
-                
+
                 const response = await api.get("/auth/me", {
                     headers: {
                         Authorization: `Bearer ${data.access_token}`
@@ -189,11 +208,13 @@ export class authUser {
                 return response.data as userData['user']
             }
 
-            if (status === 401 && accessToken && refreshToken) {
+            if (status === 401) {
                 toastConfig({
                     toastType: 'error',
                     toastMessage: 'Phiên đăng nhập hết hạn'
                 })
+                localStorage.removeItem("accessToken")
+                localStorage.removeItem("refreshToken")
                 return false
             }
 
@@ -205,6 +226,61 @@ export class authUser {
                     toastMessage: 'Phiên đăng nhập hết hạn'
                 })
             }
+            console.log(error)
+            return false
+        }
+    }
+
+    // Update password for staff
+    public static async updatePassword(currentPassword: string, newPassword: string, confirmPassword: string) {
+        authUserGuard.updatePasswordGuard(currentPassword, newPassword, confirmPassword)
+
+        try {
+            const { status } = await api.post('/auth/password/update', {
+                current_password: currentPassword,
+                new_password: newPassword
+            })
+
+            if (status === 200) {
+
+
+                toastConfig({
+                    toastType: 'success',
+                    toastMessage: 'Mật khẩu đã được cập nhật'
+                })
+                return true
+            }
+
+            if (status === 400) {
+                toastConfig({
+                    toastType: 'error',
+                    toastMessage: 'Không thể cập nhật mật khẩu'
+                })
+                console.error(400)
+                return false
+            }
+            
+            if (status === 401) {
+                toastConfig({
+                    toastType: 'error',
+                    toastMessage: 'Vui lòng kiểm tra lại mật khẩu'
+                })
+                console.error(401)
+                return false
+            }
+
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Không thể cập nhật mật khẩu'
+            })
+            return false
+
+        } catch (error) {
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Không thể cập nhật mật khẩu'
+            })
+
             console.log(error)
             return false
         }

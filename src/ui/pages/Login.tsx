@@ -39,18 +39,9 @@ const LoginPage: React.FC = () => {
             return
         }
 
-        const loginResponse: undefined | boolean | userData = await authUser.signin(email, password)
+        const loginResponse: undefined | boolean | string = await authUser.signin(email, password)
         if (loginResponse) {
-            dispatch(setUser(loginResponse.user))
-
-            if (loginResponse.user.role.name === 'user') {
-                dispatch(setUserAuth(true))
-                dispatch(setStaffAuth(false))
-            } else {
-                dispatch(setUserAuth(false))
-                dispatch(setStaffAuth(true))
-            }
-            router.push(routeConfig.main.root)
+            router.push(loginResponse)
         }
     };
 

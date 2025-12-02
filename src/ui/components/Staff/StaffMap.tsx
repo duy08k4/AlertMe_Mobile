@@ -1,47 +1,55 @@
-import { useMapEvents } from "react-leaflet"
+import { Marker, useMap, useMapEvents } from "react-leaflet"
 import { ZoomButton } from "../../pages/Map"
 import { useEffect, useRef, useState } from "react"
 import { toastConfig } from "../../../config/toastConfig"
-import { Capacitor } from "@capacitor/core"
+import L from "leaflet"
+import { webSocketManagerTracking } from "../../../websocket/socketToTracking"
+import { useSelector } from "react-redux"
+import { RootState } from "../../../redux/store"
+import { useParams } from "react-router"
+import "leaflet-routing-machine";
+
+const MyPositionMarker: React.FC<{ position: [number, number] }> = ({
+    position,
+}) => {
+    const icon = L.divIcon({
+        className: "custom-pin-marker",
+        html: `
+    <i class="fas fa-map-marker text-2xl text-mainRed"></i>
+    `,
+        iconSize: [24, 24],
+        iconAnchor: [24 / 2, 24]
+    });
+
+    return <Marker position={position} icon={icon} />;
+};
 
 interface StaffMap_interface {
-    changeLayer: () => void
+    changeLayer: () => void,
+    toggleReport: () => void
 }
 
-const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer }) => {
-    const programmaticMove = useRef(false);
-
-    // Map event
-    const map = useMapEvents({
+const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer, toggleReport }) => {
+    // Map event - simplified
+    const mapEvent = useMapEvents({
         movestart: () => {
             if (isNote) setIsNote(false);
-
-            if (programmaticMove.current) {
-                return;
-            }
-            if (isTracking) {
-                stopTracking();
-            }
+            // Removed programmaticMove.current and isTracking checks
         },
         moveend: () => {
-            if (programmaticMove.current) {
-                programmaticMove.current = false;
-            }
+            // Removed programmaticMove.current check
         }
     });
 
-    // Toggle report
-    const [isReport, setIsReport] = useState<boolean>(false)
+    // Toogle share location
+    const [isShareLocation, setIsShareLocation] = useState<boolean>(false)
 
-    const toggleReport = () => {
-
-    }
-
-    // Toggle Facility
-    const [isFacility, setIsFacility] = useState<boolean>(false)
-
-    const toggleFacility = () => {
-
+    const toggleShareLocation = () => {
+        // userPosition now comes from Redux
+        if (!isShareLocation && userPosition) {
+            webSocketManagerTracking.sendMessage("updateCoordinate", { lat: userPosition[0], lng: userPosition[1] })
+        }
+        setIsShareLocation(!isShareLocation)
     }
 
     // Toggle note
@@ -51,95 +59,81 @@ const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer }) => {
         setIsNote(!isNote)
     }
 
-    const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
-    const [isTracking, setIsTracking] = useState<boolean>(false);
-    const isFirstTimeRef = useRef<boolean>(true);
-    const watchIdRef = useRef<number | null>(null);
-    const trackingRef = useRef(isTracking);
+    // userPosition now comes from Redux
+    const userPosition = useSelector((state: RootState) => state.currentLocation.staffPosition);
+    const map = useMap()
 
-    useEffect(() => {
-        trackingRef.current = isTracking;
-    }, [isTracking]);
-
-    const startTracking = () => {
-        if (Capacitor.getPlatform() === "web" && isFirstTimeRef.current) {
-            toastConfig({
-                toastMessage:
-                    "Lưu ý: Độ chính xác vị trí của bạn trên web có thể bị ảnh hưởng. Toạ độ các sự cố không thay đổi.",
-                toastType: "info",
-            });
-            isFirstTimeRef.current = false;
-        }
-
-        if (navigator.geolocation) {
-            setIsTracking(true);
-            watchIdRef.current = navigator.geolocation.watchPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    const newPosition: [number, number] = [latitude, longitude];
-                    setUserPosition(newPosition);
-                    if (trackingRef.current) {
-                        programmaticMove.current = true;
-                        map.flyTo(newPosition, 15);
-                    }
-                },
-                () => {
-                    toastConfig({
-                        toastMessage: "Không thể lấy vị trí của bạn",
-                        toastType: "error",
-                    });
-                    stopTracking();
-                }
-            );
+    const centerOnUser = () => {
+        if (userPosition) {
+            map.flyTo(userPosition, 15);
         } else {
             toastConfig({
-                toastMessage: "Trình duyệt không hỗ trợ định vị",
+                toastMessage: "Chưa thể xác định vị trí của bạn.",
                 toastType: "error",
             });
         }
     };
 
-    const toggleTracking = () => {
-        if (isTracking) {
-            stopTracking();
-        } else {
-            startTracking();
-        }
-    };
+    const routingControlRef = useRef<L.Routing.Control | null>(null);
 
-    const stopTracking = () => {
-        if (watchIdRef.current !== null) {
-            navigator.geolocation.clearWatch(watchIdRef.current);
-            watchIdRef.current = null;
+    // Routing
+    const myTask = useSelector((state: RootState) => state.staff.newTask)
+    const { reportId } = useParams<{ reportId: string }>();
+
+    useEffect(() => {
+        if (!map) return;
+
+        const isTaskPage = myTask?.report?.id && reportId === String(myTask.report.id);
+
+        if (isTaskPage) {
+            setTimeout(() => map.invalidateSize(), 200);
+
+            if (!routingControlRef.current) {
+                routingControlRef.current = L.Routing.control({
+                    waypoints: [], // Initially empty
+                    lineOptions: {
+                        styles: [{ color: "#007bff", weight: 6 }],
+                        extendToWaypoints: false,
+                        missingRouteTolerance: 0
+                    },
+                    show: false,
+                    addWaypoints: false,
+                    createMarker: () => null,
+                } as any).addTo(map);
+            }
+
+            if (userPosition) {
+                const waypoints = [
+                    L.latLng(userPosition[0], userPosition[1]),
+                    L.latLng(myTask.report.lat, myTask.report.lng)
+                ];
+                routingControlRef.current.setWaypoints(waypoints);
+            }
+        } else {
+            if (routingControlRef.current) {
+                map.removeControl(routingControlRef.current);
+                routingControlRef.current = null;
+            }
         }
-        setIsTracking(false);
-    };
+    }, [reportId, myTask?.report?.id, userPosition, map, myTask?.report?.lat, myTask?.report?.lng]);
 
     // Cleanup on unmount
     useEffect(() => {
         return () => {
-            stopTracking();
+            if (map && routingControlRef.current) {
+                map.removeControl(routingControlRef.current);
+                routingControlRef.current = null;
+            }
         };
-    }, []);
+    }, [map]);
 
     return (
         <>
+            {userPosition && <MyPositionMarker position={userPosition} />}
             <span className="absolute z-2000 bottom-20 right-2.5 flex flex-col gap-7.5">
                 <span className="flex flex-col gap-2.5">
                     <button className="mainShadow h-fit aspect-square bg-mainDark rounded-full! p-3!" onClick={toggleNote}>
                         <i className="fas fa-question text-white"></i>
-                    </button>
-
-                    <button className="relative mainShadow h-fit aspect-square bg-white rounded-full! p-3!" onClick={toggleFacility}>
-                        {isNote && (
-                            <p
-                                className="mainShadow text-nowrap absolute top-1/2 translate-y-[-50%] right-[calc(100%+10px)] bg-mainDark text-white px-2.5 py-1.5 before:content-[''] before:absolute before:top-1/2 before:-right-2 before:-translate-y-1/2 before:border-y-6 before:border-y-transparent before:border-l-8 before:border-l-mainDark rounded-small"
-                            >
-                                Vị trí nhân viên kỹ thuật
-                            </p>
-                        )}
-
-                        <i className="fas fa-user-shield"></i>
                     </button>
 
                     <button className="relative mainShadow h-fit aspect-square bg-white rounded-full! p-3!" onClick={toggleReport}>
@@ -173,7 +167,20 @@ const StaffMap: React.FC<StaffMap_interface> = ({ changeLayer }) => {
                         <i className="fas fa-layer-group"></i>
                     </button>
 
-                    <button className="relative mainShadow h-fit aspect-square bg-white rounded-full! p-3!" onClick={toggleTracking}>
+                    <button className={`relative mainShadow h-fit aspect-square bg-white ${isShareLocation && "bg-mainRed!"} rounded-full! p-3!`} onClick={toggleShareLocation}>
+                        {isNote && (
+                            <p
+                                className="mainShadow text-nowrap absolute top-1/2 translate-y-[-50%] right-[calc(100%+10px)] bg-mainDark text-white px-2.5 py-1.5 before:content-[''] before:absolute before:top-1/2 before:-right-2 before:-translate-y-1/2 before:border-y-6 before:border-y-transparent before:border-l-8 before:border-l-mainDark rounded-small"
+                            >
+                                Chia sẻ vị trí
+                            </p>
+                        )}
+
+                        <i className={`fas fa-satellite-dish ${isShareLocation && "text-white"}`}></i>
+
+                    </button>
+
+                    <button className="relative mainShadow h-fit aspect-square bg-white rounded-full! p-3!" onClick={centerOnUser}>
                         {isNote && (
                             <p
                                 className="mainShadow text-nowrap absolute top-1/2 translate-y-[-50%] right-[calc(100%+10px)] bg-mainDark text-white px-2.5 py-1.5 before:content-[''] before:absolute before:top-1/2 before:-right-2 before:-translate-y-1/2 before:border-y-6 before:border-y-transparent before:border-l-8 before:border-l-mainDark rounded-small"

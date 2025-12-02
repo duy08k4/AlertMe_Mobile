@@ -1,9 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import { ZoomButton } from "../../pages/Map"
-import { Marker, useMapEvents } from "react-leaflet"
+import { Marker, useMap, useMapEvents } from "react-leaflet"
 import { toastConfig } from "../../../config/toastConfig"
 import { Capacitor } from "@capacitor/core"
 import L from 'leaflet'
+import { useSelector } from "react-redux"
+import { RootState } from "../../../redux/store"
 
 const MyPositionMarker: React.FC<{ position: [number, number] }> = ({
     position,
@@ -26,27 +28,6 @@ interface UserMap_interface {
 }
 
 const UserMap: React.FC<UserMap_interface> = ({ changeLayer, toggleReport }) => {
-    const programmaticMove = useRef(false);
-
-    // Map event
-    const map = useMapEvents({
-        movestart: () => {
-            if (isNote) setIsNote(false);
-
-            if (programmaticMove.current) {
-                return;
-            }
-            if (isTracking) {
-                stopTracking();
-            }
-        },
-        moveend: () => {
-            if (programmaticMove.current) {
-                programmaticMove.current = false;
-            }
-        }
-    });
-
     // Toggle note
     const [isNote, setIsNote] = useState<boolean>(false)
 
@@ -54,76 +35,21 @@ const UserMap: React.FC<UserMap_interface> = ({ changeLayer, toggleReport }) => 
         setIsNote(!isNote)
     }
 
-    const [userPosition, setUserPosition] = useState<[number, number] | null>(null);
-    const [isTracking, setIsTracking] = useState<boolean>(false);
-    const isFirstTimeRef = useRef<boolean>(true);
-    const watchIdRef = useRef<number | null>(null);
-    const trackingRef = useRef(isTracking);
+    const userPosition = useSelector((state: RootState) => state.currentLocation.userPosition);
+    const map = useMap()
 
-    useEffect(() => {
-        trackingRef.current = isTracking;
-    }, [isTracking]);
-
-    const startTracking = () => {
-        if (Capacitor.getPlatform() === "web" && isFirstTimeRef.current) {
-            toastConfig({
-                toastMessage:
-                    "Lưu ý: Độ chính xác vị trí của bạn trên web có thể bị ảnh hưởng. Toạ độ các sự cố không thay đổi.",
-                toastType: "info",
-            });
-            isFirstTimeRef.current = false;
-        }
-
-        if (navigator.geolocation) {
-            setIsTracking(true);
-            watchIdRef.current = navigator.geolocation.watchPosition(
-                (position) => {
-                    const { latitude, longitude } = position.coords;
-                    const newPosition: [number, number] = [latitude, longitude];
-                    setUserPosition(newPosition);
-                    if (trackingRef.current) {
-                        programmaticMove.current = true;
-                        map.flyTo(newPosition, 15);
-                    }
-                },
-                () => {
-                    toastConfig({
-                        toastMessage: "Không thể lấy vị trí của bạn",
-                        toastType: "error",
-                    });
-                    stopTracking();
-                }
-            );
+    const centerOnUser = () => {
+        if (userPosition) {
+            map.flyTo(userPosition, 15);
         } else {
             toastConfig({
-                toastMessage: "Trình duyệt không hỗ trợ định vị",
+                toastMessage: "Chưa thể xác định vị trí của bạn.",
                 toastType: "error",
             });
         }
     };
 
-    const toggleTracking = () => {
-        if (isTracking) {
-            stopTracking();
-        } else {
-            startTracking();
-        }
-    };
 
-    const stopTracking = () => {
-        if (watchIdRef.current !== null) {
-            navigator.geolocation.clearWatch(watchIdRef.current);
-            watchIdRef.current = null;
-        }
-        setIsTracking(false);
-    };
-
-    // Cleanup on unmount
-    useEffect(() => {
-        return () => {
-            stopTracking();
-        };
-    }, []);
 
     return (
         <>
@@ -165,7 +91,7 @@ const UserMap: React.FC<UserMap_interface> = ({ changeLayer, toggleReport }) => 
                         <i className="fas fa-layer-group"></i>
                     </button>
 
-                    <button className="relative mainShadow h-fit aspect-square bg-white rounded-full! p-3!" onClick={toggleTracking}>
+                    <button className="relative mainShadow h-fit aspect-square bg-white rounded-full! p-3!" onClick={centerOnUser}>
                         {isNote && (
                             <p
                                 className="mainShadow text-nowrap absolute top-1/2 translate-y-[-50%] right-[calc(100%+10px)] bg-mainDark text-white px-2.5 py-1.5 before:content-[''] before:absolute before:top-1/2 before:-right-2 before:-translate-y-1/2 before:border-y-6 before:border-y-transparent before:border-l-8 before:border-l-mainDark rounded-small"

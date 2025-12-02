@@ -14,7 +14,7 @@ export const routeConfig = {
     },
     mainSlug: {
         map: {
-            getPosition: "/main/map/:id"
+            getReportLocation: "/main/map/:reportId"
         },
         report: {
 

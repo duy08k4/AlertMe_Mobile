@@ -43,6 +43,7 @@ import MainLayout from './ui/layouts/MainLayout';
 // Component
 import { ScreenSizeWarningPopup } from './hooks/DeviceCheck';
 import Auth from './ui/components/Auth';
+
 const App: React.FC = () => (
   <IonApp>
     <ScreenSizeWarningPopup />

@@ -152,7 +152,7 @@ const ListDiscoveredReport: React.FC<DiscoveredReport_interface> = ({ onCloseDis
                 </button>
 
                 <div className="w-full flex justify-center-safe gap-2.5 px-mainTwoSidePadding">
-                    <button className="w-1/2 bg-mainRedRGB text-mainRed py-1.5! rounded-small!" onClick={onCloseDiscoveredReportList}>Đóng</button>
+                    <button className="w-1/2 bg-mainRedRGB text-csMedium font-medium text-mainRed py-1.5! rounded-small!" onClick={onCloseDiscoveredReportList}>Đóng</button>
                 </div>
 
                 <div className="flex-1 w-full h-0 gap-2.5 flex flex-col px-mainTwoSidePadding">

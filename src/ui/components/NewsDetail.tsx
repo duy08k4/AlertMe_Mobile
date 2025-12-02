@@ -2,7 +2,7 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import L from 'leaflet'
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../redux/store';
 import { reportService } from '../../services/report';
@@ -38,12 +38,11 @@ interface NewsDetailProps {
     onClose: () => void;
 }
 
-const NewsDetail: React.FC<NewsDetailProps> = ({ onClose}) => {
+const NewsDetail: React.FC<NewsDetailProps> = ({ onClose }) => {
     const reportID = useSelector((state: RootState) => state.report.reportDetailID)
     const reportDetail = useSelector((state: RootState) => state.report.reportDetail)
 
     const dispatch = useDispatch()
-
 
     useEffect(() => {
         (async () => {
@@ -57,7 +56,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ onClose}) => {
                 if (reportData) {
                     dispatch(setReportDetail(reportData))
                     toast.dismiss(pendingToast)
-                } 
+                }
             }
         })()
     }, [reportID])
@@ -86,11 +85,6 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ onClose}) => {
                         {(Object.keys(reportDetail).length === 0) ? "Không tìm thấy dữ liệu" : "Chi Tiết Sự Cố"}
                     </h5>
                 </span>
-                {/* <button className="mainShadow flex justify-center items-center h-10 w-10 rounded-small! transition-colors">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor" className="size-4 text-gray-700">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M7.217 10.907a2.25 2.25 0 1 0 0 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186 9.566-5.314m-9.566 7.5 9.566 5.314m0 0a2.25 2.25 0 1 0 3.935 2.186 2.25 2.25 0 0 0-3.935-2.186Zm0-12.814a2.25 2.25 0 1 0 3.933-2.185 2.25 2.25 0 0 0-3.933 2.185Z" />
-                    </svg>
-                </button> */}
             </header>
 
             <div className="flex-1 overflow-y-auto flex flex-col gap-3.5 px-mainTwoSidePadding py-2.5">
@@ -114,7 +108,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ onClose}) => {
                         <div className="flex flex-col items-center-safe gap-1.5">
                             <h2 className="leading-none! text-2xl font-bold text-gray-900">{reportDetail.name}</h2>
                             <p className="text-csMedium text-gray mt-1"><b className='text-gray'>Tạo lúc: </b>{new Date(reportDetail.created_at).toLocaleString("vi-VN")}</p>
-                            
+
                         </div>
 
                         <div className="bg-white p-4 rounded-lg mainShadow">
@@ -141,23 +135,13 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ onClose}) => {
                                 {reportDetail.lat !== undefined && reportDetail.lng !== undefined && (
                                     <MapContainer center={[reportDetail.lat, reportDetail.lng]} zoom={13} style={{ height: '100%', width: '100%' }}>
                                         <TileLayer
-                                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                                            attribution="&copy; OpenStreetMap contributors &copy; CARTO"
+                                            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
                                         />
                                         <PinMarker position={[reportDetail.lat, reportDetail.lng]} color={uniqolor(reportDetail.id).color} />
                                     </MapContainer>
                                 )}
                             </div>
-
-                            {/* <div className='w-full h-fit'>
-                                <button className='w-full h-fit bg-mainRed flex gap-2.5 justify-center-safe items-center-safe text-white text-csNormal py-2.5!' onClick={handleViewOnMap}>
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="size-5">
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M9 6.75V15m6-6v8.25m.503 3.498 4.875-2.437c.381-.19.622-.58.622-1.006V4.82c0-.836-.88-1.38-1.628-1.006l-3.869 1.934c-.317.159-.69.159-1.006 0L9.503 3.252a1.125 1.125 0 0 0-1.006 0L3.622 5.689C3.24 5.88 3 6.27 3 6.695V19.18c0 .836.88 1.38 1.628 1.006l3.869-1.934c.317-.159.69-.159 1.006 0l4.994 2.497c.317.158.69.158 1.006 0Z" />
-                                    </svg>
-
-                                    Xem trên B.Đồ
-                                </button>
-                            </div> */}
                         </div>
                     </>
                 )}

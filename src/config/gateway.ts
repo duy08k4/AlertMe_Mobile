@@ -1,4 +1,6 @@
 import axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from "axios";
+import { routeConfig } from "./routeConfig";
+import { toastConfig } from "./toastConfig";
 
 interface AxiosRequestConfigWithRetry extends AxiosRequestConfig {
     _retry?: boolean;
@@ -72,12 +74,20 @@ api.interceptors.response.use(
                 if (originalRequest.headers) {
                     originalRequest.headers.Authorization = `Bearer ${newToken}`;
                 }
+
+                if (res.status === 401) {
+                    toastConfig({
+                        toastType: 'error',
+                        toastMessage: 'Phiên đăng nhập hết hạn'
+                    })
+                }
+
                 return api(originalRequest);
             } catch (refreshErr) {
                 console.error("Refresh token failed:", refreshErr);
                 localStorage.removeItem("accessToken");
                 localStorage.removeItem("refreshToken");
-                window.location.href = "/login";
+                window.location.href = routeConfig.login.root;
                 return Promise.reject(refreshErr);
             } finally {
                 isRefreshing = false;

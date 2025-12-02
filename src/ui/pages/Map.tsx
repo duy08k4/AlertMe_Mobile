@@ -1,4 +1,5 @@
-import { IonPage } from "@ionic/react"
+import { IonPage, useIonRouter } from "@ionic/react"
+import { useParams } from 'react-router-dom';
 import React, { useEffect, useRef, useState } from "react"
 import { useMap, MapContainer, TileLayer } from 'react-leaflet'
 import { useDispatch, useSelector } from "react-redux";
@@ -14,6 +15,7 @@ import { RootState } from "../../redux/store";
 import { setDiscoveredReport } from "../../redux/reducers/report";
 import { reportService } from "../../services/report";
 import { toastConfig } from "../../config/toastConfig"; // Added import
+import { staffService } from "../../services/staffService";
 
 // Map resize
 export const MapResizeHandler: React.FC = () => {
@@ -101,6 +103,14 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
     };
 
     const handleDiscover = () => {
+        if (!isReport) {
+            toastConfig({
+                toastType: 'warn',
+                toastMessage: 'Vui lòng mở Vị trí sự cố trước'
+            })
+            return
+        }
+
         if (!map) {
             console.error("Map instance is not available yet.");
             return;
@@ -147,7 +157,7 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
                 (error) => {
                     // Silently fail on geolocation error
                 },
-                { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         } else {
             toastConfig({
@@ -161,6 +171,42 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
         setIsReport(!isReport)
     }
 
+    // Staff routing
+    const staffPosition = useSelector((state: RootState) => state.currentLocation.staffPosition);
+    const task = useSelector((state: RootState) => state.staff.newTask)
+    const staffId = useSelector((state: RootState) => state.staff.staff.id)
+    const myTask = useSelector((state: RootState) => state.staff.newTask)
+    const [isStaffRouting, setIsStaffRouting] = useState<boolean>(false)
+    const router = useIonRouter()
+    const { reportId } = useParams<{ reportId: string }>();
+
+    useEffect(() => {
+        if (reportId && myTask && myTask.report && reportId === myTask.report.id) {
+            setIsStaffRouting(true);
+        } else {
+            setIsStaffRouting(false);
+        }
+
+        // Cleanup when the component unmounts or dependencies change
+        return () => {
+            setIsStaffRouting(false);
+        };
+    }, [reportId, myTask]);
+
+    const canelRouting = () => {
+        router.goBack();
+    }
+
+    const handleComplete = async () => {
+        if (staffPosition) {
+            await staffService.completeTask(task.report.id, task.id, staffId, task.report.lat, task.report.lng, staffPosition[0], staffPosition[1])
+        } else {
+            toastConfig({
+                toastType: 'error',
+                toastMessage: 'Không tìm thấy vị trí của bạn'
+            })
+        }
+    }
 
     return (
         <IonPage>
@@ -184,10 +230,10 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
                     {isUser ? (
                         <UserMap changeLayer={changeLayer} toggleReport={toggleReport} />
                     ) : (
-                        <StaffMap changeLayer={changeLayer} />
+                        <StaffMap changeLayer={changeLayer} toggleReport={toggleReport} />
                     )}
 
-                    {!isDiscoveredReport && (
+                    {!isDiscoveredReport && !isStaffRouting && (
                         <span className="absolute h-fit w-[80%] z-1000 bottom-5 left-1/2 translate-x-[-50%] flex gap-2.5">
                             <button
                                 className="mainShadow flex-1 bg-mainRed text-white! rounded-small!"
@@ -197,7 +243,7 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
                             </button>
 
                             <button
-                                className="mainShadow h-fit w-fit bg-mainDark text-white! font-medium flex items-center gap-2.5 px-5! py-2.5! rounded-small!"
+                                className="mainShadow h-fit w-fit bg-mainDark text-white! font-medium flex items-center gap-2.5 px-5! py-3.5! rounded-small!"
                                 onClick={handleDiscover}
                             >
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="white" className="size-4">
@@ -207,6 +253,26 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
                                 Xem sự cố
                             </button>
                         </span>
+                    )}
+
+                    {isStaffRouting && myTask.id && (
+                        <>
+                            <span className="absolute h-fit w-[80%] z-1000 bottom-5 left-1/2 translate-x-[-50%] flex gap-2.5">
+                                <button
+                                    className="mainShadow flex-1 bg-mainRed text-white! rounded-small!"
+                                    onClick={handleComplete}
+                                >
+                                    Hoàn thành
+                                </button>
+
+                                <button
+                                    className="mainShadow h-fit w-fit bg-mainDark text-white! font-medium flex items-center gap-2.5 px-5! py-3.5! rounded-small!"
+                                    onClick={canelRouting}
+                                >
+                                    Hủy tìm đường
+                                </button>
+                            </span>
+                        </>
                     )}
                 </MapContainer>
 

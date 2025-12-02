@@ -90,22 +90,19 @@ const ReportPage: React.FC = () => {
 
             if (!getMyReport.status) {
                 invalidToast.current = getMyReport.invalidDataToast ?? null
-                console.log("Looi")
                 return
             }
 
             if (getMyReport.data) {
                 dispatch(setMyReport(getMyReport.data))
                 if (invalidToast.current) clearTimeout(invalidToast.current)
-            } else {
-                console.log("wow")
             }
         })()
     }, [userId])
 
     // Filter reports based on isPending and searchTerm
     const filteredReports = myReport.filter(report => {
-        const matchesStatus = isPending ? report.status !== "closed" : report.status === "closed"
+        const matchesStatus = isPending ? report.status !== "closed" && report.status !== "resolved" : report.status === "closed" || report.status === "resolved"
         const matchesSearch = report.name.toLowerCase().includes(searchTerm.toLowerCase())
         return matchesStatus && matchesSearch
     })
@@ -156,7 +153,7 @@ const ReportPage: React.FC = () => {
                     </span>
 
                     <div className="w-full flex-1 overflow-auto flex flex-wrap justify-start content-start gap-2 px-0.5 py-2.5">
-                        {filteredReports.map((report, i) => (
+                        {filteredReports.map((report) => (
                             <ReportCard
                                 key={report.id}
                                 report={report}
