@@ -1,13 +1,10 @@
 import React, { useState } from "react"
-import { useSelector } from "react-redux"
-import { RootState } from "../../../redux/store"
 import Logo from "../../../assets/AlertMe.png";
 import { authUser } from "../../../services/authUser";
 
-const ResetDefaultPasword: React.FC = () => {
-    // Redux
-    const staffProfile = useSelector((state: RootState) => state.staff.staff)
-
+const ResetDefaultPasword: React.FC<{
+    closeForm: () => void
+}> = ({ closeForm }) => {
     // State
     const [currentPassword, setCurrentPassword] = useState<string>("")
     const [newPassword, setNewPassword] = useState<string>("")
@@ -16,9 +13,8 @@ const ResetDefaultPasword: React.FC = () => {
     // Handler
     const updatePassword = async () => {
         await authUser.updatePassword(currentPassword, newPassword, confirmPassword)
+        closeForm()
     }
-
-    if (!staffProfile.is_new_user || !staffProfile.is_new_user) return null
 
     return (
         <div className="fixed top-0 left-0 h-full w-full bg-[rgba(0,0,0,0.85)] flex justify-center items-center p-4">

@@ -20,22 +20,20 @@ const NewsCard: React.FC<{ onCardClick: (id: string) => void; report: reportType
 
     return (
         <div className="mainShadow h-fit w-full bg-white flex items-center-safe gap-2.5 rounded-small p-2.5" onClick={() => onCardClick(report.id)}>
-            <span className="h-[60px] aspect-square overflow-hidden border border-lightGray rounded-small">
-                <img src={report.attachment_paths[0] || Logo} className="w-full h-full object-cover object-center" />
+            <span className="w-[60px] h-full overflow-hidden border border-lightGray rounded-small">
+                <img src={report.attachment_paths[0] || Logo} className="w-full h-full object-cover object-center" loading="lazy" />
             </span>
 
             <span className="flex flex-col gap-1.5 justify-center-safe flex-1">
-                <h6 className="leading-none! m-0! font-medium">{report.name}</h6>
+                <h6 className="leading-none! m-0! font-medium line-clamp-2">{report.name}</h6>
                 <p className="text-csNormal">
                     <b className="text-gray">Trạng thái:</b>
                     <span className={`${reportStatusColor[report.status].textColor} ${reportStatusColor[report.status].bgColor} font-semibold px-1.5 py-0.5`}>
                         {reportStatus[report.status]}
                     </span>
                 </p>
-                <p className="text-csSmall text-gray-500 flex items-center-safe">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-3 mr-1">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-                    </svg>
+                <p className="text-csSmall text-gray-500 flex items-center-safe gap-1">
+                    <b>Gửi lúc: </b>
                     {formattedDate}
                 </p>
             </span>
