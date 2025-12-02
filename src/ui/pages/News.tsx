@@ -2,11 +2,15 @@ import { IonPage } from "@ionic/react"
 import React, { useMemo, useState } from "react"
 import { useSelector, useDispatch } from "react-redux";
 import { RootState } from "../../redux/store";
-import { reportType, setReportDetailID } from "../../redux/reducers/report";
+import { reportType, setReport, setReportDetailID } from "../../redux/reducers/report";
 import { reportStatus, reportStatusColor } from "../../config/reportStatus";
 import NewsDetail from "../components/NewsDetail"
 import Logo from "../../assets/AlertMe.png"
 import Funnel, { FilterSection } from "../components/Funnel";
+import { reportService } from "../../services/report";
+import { authUser } from "../../services/authUser";
+import { setInitializing, setUser, setUserAuth } from "../../redux/reducers/user";
+import { setStaff, setStaffAuth } from "../../redux/reducers/staff";
 
 
 type Selections = Record<string, string[]>;
@@ -95,11 +99,40 @@ const NewsPage: React.FC = () => {
         });
     }, [reports, searchTerm, selections]);
 
+
+    const refreshData = async () => {
+        try {
+            // Fetch reports
+            const getReportForMap = await reportService.getReportForMap()
+            if (getReportForMap) {
+                dispatch(setReport(getReportForMap))
+            }
+
+            // Auto sign-in
+            const userData = await authUser.autosigin()
+            if (userData) {
+                if (userData.role.name === 'user') {
+                    dispatch(setUserAuth(true))
+                    dispatch(setStaffAuth(false))
+                    dispatch(setUser(userData))
+                } else {
+                    dispatch(setUserAuth(false))
+                    dispatch(setStaffAuth(true))
+                    dispatch(setStaff(userData))
+                }
+            }
+        } catch (error) {
+            console.error("Initialization error:", error)
+        } finally {
+            dispatch(setInitializing(false))
+        }
+    }
+
     return (
         <IonPage>
             <div className="h-full w-full bg-white flex flex-col">
                 <div className="px-mainTwoSidePadding py-2.5">
-                    <h2 className="font-semibold!">
+                    <h2 className="font-semibold! leading-none!">
                         Danh sách sự cố
                     </h2>
 
@@ -112,7 +145,16 @@ const NewsPage: React.FC = () => {
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
 
-                        <div className="relative h-10">
+                        <div className="relative h-10 flex items-center-safe gap-2.5">
+                            <button
+                                onClick={refreshData}
+                                className="mainShadow h-full! aspect-square flex justify-center-safe items-center-safe bg-white rounded-small!"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-4">
+                                    <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0 3.181 3.183a8.25 8.25 0 0 0 13.803-3.7M4.031 9.865a8.25 8.25 0 0 1 13.803-3.7l3.181 3.182m0-4.991v4.99" />
+                                </svg>
+                            </button>
+
                             <button
                                 onClick={toggleFunnel}
                                 className="mainShadow h-full! aspect-square flex justify-center-safe items-center-safe bg-white rounded-small!"

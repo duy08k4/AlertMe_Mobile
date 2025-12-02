@@ -1,5 +1,5 @@
-import { IonRouterOutlet, IonTabBar, IonTabButton, IonTabs } from "@ionic/react";
-import React, { useEffect, useRef } from "react"
+import { IonRouterOutlet, IonSpinner, IonTabBar, IonTabButton, IonTabs } from "@ionic/react";
+import React, { lazy, useEffect, useRef } from "react"
 import { routeConfig } from "../../config/routeConfig";
 import { Redirect, Route } from "react-router";
 
@@ -8,11 +8,13 @@ import MapPage from "../pages/Map";
 import { useSelector } from "react-redux";
 import { RootState } from "../../redux/store";
 import NewsPage from "../pages/News";
-import TaskPage from "../pages/Task";
+const TaskPage = lazy(() => import("../pages/Task"))
 import ReportPage from "../pages/Report";
 import GetData from "../components/GetData";
 import MorePage from "../pages/More";
-
+import ResetDefaultPasword from "../components/Staff/ResetDefaultPasword";
+import Websocket from "../components/Websocket";
+import LocationTracker from "../../hooks/LocationTracker";
 
 // Staff menu
 const StaffMenu = () => {
@@ -139,6 +141,7 @@ const UserMenu = () => {
 const MainLayout: React.FC = () => {
     const userAuth = useSelector((state: RootState) => state.user.isAuth)
     const staffAuth = useSelector((state: RootState) => state.staff.isAuth)
+    const isInitializing = useSelector((state: RootState) => state.user.isInitializing)
 
     useEffect(() => {
         if (userAuth && staffAuth) {
@@ -146,12 +149,35 @@ const MainLayout: React.FC = () => {
         }
     }, [userAuth, staffAuth])
 
+    const renderBottomNav = () => {
+        if (isInitializing) {
+            return (
+                <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center bg-white z-999">
+                    <IonSpinner />
+                </div>
+            )
+        }
+
+        if (userAuth) {
+            return <UserMenu />
+        }
+
+        if (staffAuth) {
+            return <StaffMenu />
+        }
+
+        return <Redirect exact to={routeConfig.unAuth.root} />
+    }
+
     return (
         <IonTabs>
             <GetData />
+            <Websocket />
+            <LocationTracker /> {/* Mount LocationTracker here */}
             <IonRouterOutlet className="z-0">
                 {/* Map */}
                 <Route path={routeConfig.main.map} children={<MapPage isUser={userAuth} />} exact />
+                <Route path={routeConfig.mainSlug.map.getReportLocation} children={<MapPage isUser={userAuth} />} exact />
 
                 {/* Task */}
                 {userAuth ?
@@ -168,13 +194,8 @@ const MainLayout: React.FC = () => {
 
             </IonRouterOutlet>
 
-            {userAuth == false && staffAuth == false ? (<Redirect exact to={routeConfig.unAuth.root} />) : (
-                userAuth ? (
-                    <UserMenu />
-                ) : (
-                    <StaffMenu />
-                )
-            )}
+            {renderBottomNav()}
+            <ResetDefaultPasword />
         </IonTabs>
     )
 }

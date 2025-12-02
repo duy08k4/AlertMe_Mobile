@@ -3,7 +3,7 @@ import React from "react"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "../../redux/store"
 import { setUser, setUserAuth } from "../../redux/reducers/user"
-import { setStaffAuth } from "../../redux/reducers/staff"
+import { setStaff, setStaffAuth } from "../../redux/reducers/staff"
 import { routeConfig } from "../../config/routeConfig"
 import UserDefaultAvatar from "../../assets/userDefault.avif" // Using the specified default avatar
 import { authUser } from "../../services/authUser"
@@ -12,16 +12,23 @@ const MorePage: React.FC = () => {
     const dispatch = useDispatch()
     const router = useIonRouter()
     const user = useSelector((state: RootState) => state.user.user)
+    const staff = useSelector((state: RootState) => state.staff.staff)
 
     const handleLogout = async () => {
-        // Clear user session
-        dispatch(setUser({} as any))
+        await authUser.signout()
+        router.push(routeConfig.login.root, "root", "replace")
+
+        if (user.id) {
+            // Clear user session
+            dispatch(setUser({} as any))
+        } else {
+            dispatch(setStaff({} as any))
+        }
+
         dispatch(setUserAuth(false))
         dispatch(setStaffAuth(false))
 
         // Redirect to login page
-        await authUser.signout()
-        router.push(routeConfig.login.root, "root", "replace")
     }
 
     return (
@@ -34,11 +41,26 @@ const MorePage: React.FC = () => {
                 <div className="flex-1 flex flex-col justify-between px-mainTwoSidePadding pb-5">
                     <div className="flex flex-col items-center gap-4">
                         <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-mainRed">
-                            <img src={user.profile?.profilepic || UserDefaultAvatar} alt="User Avatar" className="w-full h-full object-cover" />
+                            {Object.keys(user).length > 0 ? (
+                                <img src={user.profile && user.profile.profilepic ? user.profile?.profilepic : UserDefaultAvatar} alt="User Avatar" className="w-full h-full object-cover" />
+                            ) : (
+                                <img src={staff.profile && staff.profile.profilepic ? staff.profile.profilepic : UserDefaultAvatar} alt="User Avatar" className="w-full h-full object-cover" />
+                            )}
                         </div>
+
                         <div className="text-center">
-                            <p className="text-xl font-bold">{user.profile?.username || "Username"}</p>
-                            <p className="text-csNormal text-gray-500">{user.email || "user@email.com"}</p>
+                            {Object.keys(user).length > 0 ? (
+                                <>
+                                    <p className="text-xl font-bold">{user.profile && user.profile.username ? user.profile?.username : "Username"}</p>
+                                    <p className="text-csNormal text-gray-500">{user.email ? user.email : "user@email.com"}</p>
+                                </>
+                            ) : (
+
+                                <>
+                                    <p className="text-xl font-bold">{staff.profile && staff.profile.username ? staff.profile?.username : "Staff's name"}</p>
+                                    <p className="text-csNormal text-gray-500">{staff.email ? staff.email : "user@email.com"}</p>
+                                </>
+                            )}
                         </div>
                     </div>
 

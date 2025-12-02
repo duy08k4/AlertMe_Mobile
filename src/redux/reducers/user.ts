@@ -11,6 +11,7 @@ export type userData = {
         email: string,
         supabase_id: string,
         role_id: string,
+        is_new_user: boolean,
         created_at: string, // 2025-11-18T23:59:33.379Z
         updated_at: string, // 2025-11-18T23:59:33.379Z
         role: {
@@ -38,19 +39,25 @@ export type userData = {
 export interface UserState {
     user: userData['user'],
     isAuth: boolean,
-    myReport: ReportDetail[]
+    myReport: ReportDetail[],
+    isInitializing: boolean
 }
 
 const initialState: UserState = {
     user: {} as userData['user'],
-    isAuth: true,
-    myReport: []
+    isAuth: false,
+    myReport: [],
+    isInitializing: true
 }
 
 export const userSlice = createSlice({
     name: 'user',
     initialState,
     reducers: {
+        setInitializing: (state, action: PayloadAction<boolean>) => {
+            state.isInitializing = action.payload
+        },
+
         setUser: (state, action: PayloadAction<userData['user']>) => {
             state.user = action.payload
         },
@@ -71,6 +78,6 @@ export const userSlice = createSlice({
 })
 
 // Action creators are generated for each case reducer function
-export const { setUser, setUserAuth, addMyReport, setMyReport } = userSlice.actions
+export const { setInitializing, setUser, setUserAuth, addMyReport, setMyReport } = userSlice.actions
 
 export default userSlice.reducer

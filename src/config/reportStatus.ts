@@ -1,12 +1,13 @@
 export const reportStatus = {
     pending: 'Chờ xử lý',
-    reviewed: 'Đã tiếp nhận',
     in_progress: 'Đang xử lý',
     resolved: 'Đã xử lý',
     closed: 'Đã giải quyết',
 }
 
-export const reportStatusColor = {
+export type ReportStatusKey = keyof typeof reportStatus;
+
+export const reportStatusColor: { [key in ReportStatusKey]: { textColor: string; bgColor: string } } = {
     pending: {
         textColor: 'text-[#FFA500]',
         bgColor: 'bg-[rgba(255,165,0,0.15)]'
@@ -14,10 +15,6 @@ export const reportStatusColor = {
     in_progress: {
         textColor: 'text-[#007BFF]',
         bgColor: 'bg-[rgba(0,123,255,0.15)]'
-    },
-    reviewed: {
-        textColor: 'text-[#28A745]',
-        bgColor: 'bg-[rgba(40,167,69,0.15)]'
     },
     resolved: {
         textColor: 'text-[#28A745]',
@@ -37,7 +34,9 @@ export const taskStatus = {
     cancelled: 'Đã hủy',
 }
 
-export const taskStatusColor = {
+export type TaskStatusKey = keyof typeof taskStatus;
+
+export const taskStatusColor: { [key in TaskStatusKey]: { textColor: string; bgColor: string } } = {
     not_received: {
         textColor: 'text-[#FFA500]',
         bgColor: 'bg-[rgba(255,165,0,0.15)]'

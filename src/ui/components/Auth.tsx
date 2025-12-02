@@ -5,7 +5,7 @@ import { authUser } from "../../services/authUser"
 import { setUser, setUserAuth, userData } from "../../redux/reducers/user"
 import { routeConfig } from "../../config/routeConfig"
 import { useDispatch } from "react-redux"
-import { setStaffAuth } from "../../redux/reducers/staff"
+import { setStaff, setStaffAuth } from "../../redux/reducers/staff"
 
 const Auth: React.FC = () => {
     const pathLocation = useLocation()
@@ -18,16 +18,16 @@ const Auth: React.FC = () => {
 
     const autoAuth = async () => {
         const isAuth: userData['user'] | boolean = await authUser.autosigin()
-
         if (isAuth) {
-            dispatch(setUser(isAuth))
-
+            
             if (isAuth.role.name === 'user') {
                 dispatch(setUserAuth(true))
                 dispatch(setStaffAuth(false))
+                dispatch(setUser(isAuth))
             } else {
                 dispatch(setUserAuth(false))
                 dispatch(setStaffAuth(true))
+                dispatch(setStaff(isAuth))
             }
 
             if (!pathLocation.pathname.includes("main")) {

@@ -82,11 +82,15 @@ export const reportSlice = createSlice({
         setReportDetail: (state, action: PayloadAction<ReportDetail>) => {
             const getReportDetail = action.payload
             if (getReportDetail.id) state.reportDetail = action.payload
+        },
+
+        addNewReport: (state, action: PayloadAction<reportType>) => {
+            state.reports.unshift(action.payload)
         }
     },
 })
 
 // Action creators are generated for each case reducer function
-export const { setReport, setDiscoveredReport, setReportDetailID, setReportDetail } = reportSlice.actions
+export const { setReport, setDiscoveredReport, setReportDetailID, setReportDetail, addNewReport } = reportSlice.actions
 
 export default reportSlice.reducer
