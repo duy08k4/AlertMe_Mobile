@@ -18,7 +18,9 @@ const ResetDefaultPasword: React.FC = () => {
         await authUser.updatePassword(currentPassword, newPassword, confirmPassword)
     }
 
-    if (!staffProfile.is_new_user || !staffProfile.is_new_user) return null
+    if (!staffProfile.is_new_user && typeof staffProfile.is_new_user !== "boolean") return null
+
+    if (Object.keys(staffProfile).length > 0 && staffProfile.is_new_user === false) return null
 
     return (
         <div className="fixed top-0 left-0 h-full w-full bg-[rgba(0,0,0,0.85)] flex justify-center items-center p-4">
