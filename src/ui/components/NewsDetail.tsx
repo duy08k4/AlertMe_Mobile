@@ -95,7 +95,7 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ onClose }) => {
                 ) : (
 
                     <>
-                        <div className="mainShadow h-48! rounded-main! border border-gray-200">
+                        <div className="mainShadow h-[250px] rounded-main! border border-gray-200">
                             <div className="flex w-full h-full overflow-x-auto overflow-y-hidden snap-x snap-mandatory rounded-small">
                                 {reportDetail.attachment_paths && reportDetail.attachment_paths.map((img, index) => (
                                     <div key={index} className="w-full h-full shrink-0 snap-center flex justify-center items-center bg-white">
@@ -119,7 +119,12 @@ const NewsDetail: React.FC<NewsDetailProps> = ({ onClose }) => {
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-gray text-csMedium font-medium truncate">Đã xử lý lúc:</p>
-                                    <p className="font-semibold text-csNormal text-gray-800">{new Date(reportDetail.updated_at).toLocaleString("vi-VN")}</p>
+                                    {reportDetail.status === "closed" || reportDetail.status === "resolved" ? (
+                                        <p className="font-semibold text-csNormal text-gray-800">{new Date(reportDetail.updated_at).toLocaleString("vi-VN")}</p>
+                                    ) : (
+                                        <p className="font-semibold text-csNormal text-gray-800">__________</p>
+                                    )}
+
                                 </div>
                             </div>
                         </div>
