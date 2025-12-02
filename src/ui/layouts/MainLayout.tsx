@@ -1,5 +1,5 @@
 import { IonRouterOutlet, IonSpinner, IonTabBar, IonTabButton, IonTabs } from "@ionic/react";
-import React, { lazy, useEffect, useRef } from "react"
+import React, { lazy, useEffect, useRef, useState } from "react"
 import { routeConfig } from "../../config/routeConfig";
 import { Redirect, Route } from "react-router";
 
@@ -139,34 +139,26 @@ const UserMenu = () => {
 }
 
 const MainLayout: React.FC = () => {
+    // Redux
+    const staffProfile = useSelector((state: RootState) => state.staff.staff)
     const userAuth = useSelector((state: RootState) => state.user.isAuth)
     const staffAuth = useSelector((state: RootState) => state.staff.isAuth)
     const isInitializing = useSelector((state: RootState) => state.user.isInitializing)
+
+    const [isReset, setIsReset] = useState<boolean>(false)
 
     useEffect(() => {
         if (userAuth && staffAuth) {
             alert("User và Staff không thể cùng Auth")
         }
-    }, [userAuth, staffAuth])
-
-    const renderBottomNav = () => {
-        if (isInitializing) {
-            return (
-                <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center bg-white z-999">
-                    <IonSpinner />
-                </div>
-            )
-        }
-
-        if (userAuth) {
-            return <UserMenu />
-        }
 
         if (staffAuth) {
-            return <StaffMenu />
+            setIsReset(staffProfile.is_new_user)
         }
+    }, [userAuth, staffAuth])
 
-        return <Redirect exact to={routeConfig.unAuth.root} />
+    const ToggleResetPassword = () => {
+        setIsReset(!isReset)
     }
 
     return (
@@ -194,8 +186,17 @@ const MainLayout: React.FC = () => {
 
             </IonRouterOutlet>
 
-            {renderBottomNav()}
-            <ResetDefaultPasword />
+            {userAuth == false && staffAuth == false ? (<Redirect exact to={routeConfig.unAuth.root} />) : (
+                userAuth ? (
+                    <UserMenu />
+                ) : (
+                    <StaffMenu />
+                )
+            )}
+
+            {isReset && (
+                <ResetDefaultPasword closeForm={ToggleResetPassword} />
+            )}
         </IonTabs>
     )
 }

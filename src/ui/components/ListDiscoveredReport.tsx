@@ -4,7 +4,7 @@ import uniqolor from 'uniqolor';
 import { RootState } from "../../redux/store";
 import { useDispatch, useSelector } from "react-redux";
 import { reportType, setReportDetailID } from "../../redux/reducers/report";
-import { reportStatus } from "../../config/reportStatus";
+import { reportStatus, reportStatusColor } from "../../config/reportStatus";
 import Funnel, { FilterSection } from "./Funnel";
 
 
@@ -33,16 +33,16 @@ const Tag: React.FC<Tag_interface> = ({ report, reportDetail }) => {
     return (
         <div
             onClick={chooseSpecies}
-            className={`relative w-full h-fit flex gap-2.5 items-center px-5 border-[0.5px]! border-lightGray py-1.5 rounded-main border-l-4 border-l-[${randomColor}]`}
+            className={`relative w-full h-fit flex gap-2.5 items-center-safe px-5 border-[0.5px]! border-lightGray py-1.5 rounded-main border-l-4 border-l-[${randomColor}]`}
         >
-            <span className="h-[50px] aspect-square overflow-hidden flex justify-center items-center rounded-small">
+            <span className="w-[60px] h-full overflow-hidden flex justify-center items-center rounded-small">
                 <img src={report.attachment_paths[0]} className="h-full w-full object-cover object-center" loading="lazy" />
             </span>
             
             <span className="flex-1">
-                <p className="text-csNormal font-medium">{report.name}</p>
-                <p className="flex items-center text-csSmall text-gray">{reportStatus[report.status]}</p>
-                <p className="flex items-center text-csSmall text-gray">{time}</p>
+                <p className="text-csNormal font-medium line-clamp-2">{report.name}</p>
+                <p className={`w-fit flex items-center font-medium padding text-csSmall px-1.5 ${reportStatusColor[report.status].textColor} ${reportStatusColor[report.status].bgColor}`}>{reportStatus[report.status]}</p>
+                <p className="flex items-center text-csSmall text-gray"><b className="text-gray">Gửi lúc:</b>{" "} {time}</p>
             </span>
         </div>
     )
