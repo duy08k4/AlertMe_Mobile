@@ -20,7 +20,7 @@ export const currentLocationSlice = createSlice({
         },
 
         setUserPosition: (state, action: PayloadAction<[number, number] | null>) => {
-            state.staffPosition = action.payload
+            state.userPosition = action.payload
         },
     },
 })

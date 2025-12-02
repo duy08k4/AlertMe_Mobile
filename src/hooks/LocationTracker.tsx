@@ -51,7 +51,9 @@ const LocationTracker: React.FC = () => {
             navigator.geolocation.clearWatch(watchIdRef.current);
             watchIdRef.current = null;
         }
-        dispatch(setStaffPosition(null)); // Clear position on stop
+        dispatch(setStaffPosition(null));
+        dispatch(setUserPosition(null));
+
     };
 
     useEffect(() => {
