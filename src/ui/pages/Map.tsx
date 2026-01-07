@@ -73,8 +73,11 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
 
     // Redux
     const userId = useSelector((state: RootState) => state.user.user.id)
+    const staffId = useSelector((state: RootState) => state.staff.staff.id)
     const dispatch = useDispatch();
     const allReports = useSelector((state: RootState) => state.report.reports);
+    const userPosition = useSelector((state: RootState) => state.currentLocation.userPosition)
+    const staffPosition = useSelector((state: RootState) => state.currentLocation.userPosition)
 
     // Layer
     const [layer, setLayer] = useState<number>(0)
@@ -127,7 +130,7 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
         setIsNewsDetail(!isNewsDetail)
     }
 
-    const handleSOSClick = () => {
+    const handleSOSClick = async () => {
         const cooldown = 60000; // 60 seconds
         const lastSOSTimestamp = localStorage.getItem("lastSOSTimestamp");
         const now = new Date().getTime();
@@ -144,26 +147,24 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
             }
         }
 
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(
-                async (position) => {
-                    const { latitude, longitude } = position.coords;
-                    const sendSOSReport = await reportService.sendSOS(userId, latitude, longitude)
+        let sosPosition: [number, number] | undefined
+        if (isUser) {
+            if (userPosition) sosPosition = userPosition
+        } else {
+            if (staffPosition) sosPosition = staffPosition
+        }
 
-                    if (sendSOSReport) {
-                        localStorage.setItem("lastSOSTimestamp", now.toString());
-                    }
-                },
-                (error) => {
-                    // Silently fail on geolocation error
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-            );
+        if (sosPosition) {
+            const sendSOSReport = await reportService.sendSOS(userId, sosPosition[0], sosPosition[1])
+
+            if (sendSOSReport) {
+                localStorage.setItem("lastSOSTimestamp", now.toString());
+            }
         } else {
             toastConfig({
-                toastType: "error",
-                toastMessage: "Trình duyệt không hỗ trợ định vị."
-            });
+                toastType: 'error',
+                toastMessage: 'Không tìm thấy vị trí của bạn'
+            })
         }
     };
 
@@ -172,9 +173,7 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
     }
 
     // Staff routing
-    const staffPosition = useSelector((state: RootState) => state.currentLocation.staffPosition);
     const task = useSelector((state: RootState) => state.staff.newTask)
-    const staffId = useSelector((state: RootState) => state.staff.staff.id)
     const myTask = useSelector((state: RootState) => state.staff.newTask)
     const [isStaffRouting, setIsStaffRouting] = useState<boolean>(false)
     const router = useIonRouter()
@@ -234,13 +233,15 @@ const MapPage: React.FC<{ isUser: boolean }> = ({ isUser }) => {
                     )}
 
                     {!isDiscoveredReport && !isStaffRouting && (
-                        <span className="absolute h-fit w-[80%] z-1000 bottom-5 left-1/2 translate-x-[-50%] flex gap-2.5">
-                            <button
-                                className="mainShadow flex-1 bg-mainRed text-white! rounded-small!"
-                                onClick={handleSOSClick}
-                            >
-                                SOS
-                            </button>
+                        <span className={`absolute h-fit w-[80%] z-1000 bottom-5 left-1/2 translate-x-[-50%] flex ${!userId && "justify-center-safe!"} gap-2.5`}>
+                            {userId && (
+                                <button
+                                    className="mainShadow flex-1 bg-mainRed text-white! rounded-small!"
+                                    onClick={handleSOSClick}
+                                >
+                                    SOS
+                                </button>
+                            )}
 
                             <button
                                 className="mainShadow h-fit w-fit bg-mainDark text-white! font-medium flex items-center gap-2.5 px-5! py-3.5! rounded-small!"
